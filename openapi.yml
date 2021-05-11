@@ -1,0 +1,5109 @@
+definitions:
+  AMLRecord:
+    properties:
+      aml:
+        additionalProperties:
+          type: string
+        type: object
+      amlContext:
+        type: string
+      version:
+        type: string
+    type: object
+  ActionMenuModulesResult:
+    properties: {}
+    type: object
+  AdminAPIMessageTracing:
+    properties:
+      trace:
+        description: Record trace information, based on agent configuration
+        type: boolean
+    type: object
+  AdminMediationDeny:
+    properties:
+      mediator_terms:
+        description: List of mediator rules for recipient
+        items:
+          description: Indicate terms that the mediator requires the recipient to
+            agree to
+          type: string
+        type: array
+      recipient_terms:
+        description: List of recipient rules for mediation
+        items:
+          description: Indicate terms that the recipient requires the mediator to
+            agree to
+          type: string
+        type: array
+    type: object
+  AdminModules:
+    properties:
+      result:
+        description: List of admin modules
+        items:
+          description: admin module
+          type: string
+        type: array
+    type: object
+  AdminShutdown:
+    properties: {}
+    type: object
+  AdminStatus:
+    properties: {}
+    type: object
+  AdminStatusLiveliness:
+    properties:
+      alive:
+        description: Liveliness status
+        type: boolean
+    type: object
+  AdminStatusReadiness:
+    properties:
+      ready:
+        description: Readiness status
+        type: boolean
+    type: object
+  AttachDecorator:
+    properties:
+      '@id':
+        description: Attachment identifier
+        type: string
+      byte_count:
+        description: Byte count of data included by reference
+        format: int32
+        type: integer
+      data:
+        $ref: '#/definitions/AttachDecoratorData'
+      description:
+        description: Human-readable description of content
+        type: string
+      filename:
+        description: File name
+        type: string
+      lastmod_time:
+        description: Hint regarding last modification datetime, in ISO-8601 format
+        type: string
+      mime-type:
+        description: MIME type
+        type: string
+    required:
+    - data
+    type: object
+  AttachDecoratorData:
+    properties:
+      base64:
+        description: Base64-encoded data
+        type: string
+      json:
+        description: JSON-serialized data
+        type: object
+      jws:
+        allOf:
+        - $ref: '#/definitions/AttachDecoratorDataJWS'
+        description: Detached Java Web Signature
+      links:
+        description: List of hypertext links to data
+        items:
+          type: string
+        type: array
+      sha256:
+        description: SHA256 hash (binhex encoded) of content
+        type: string
+    type: object
+  AttachDecoratorData1JWS:
+    properties:
+      header:
+        $ref: '#/definitions/AttachDecoratorDataJWSHeader'
+      protected:
+        description: protected JWS header
+        type: string
+      signature:
+        description: signature
+        type: string
+    required:
+    - header
+    - signature
+    type: object
+  AttachDecoratorDataJWS:
+    properties:
+      header:
+        $ref: '#/definitions/AttachDecoratorDataJWSHeader'
+      protected:
+        description: protected JWS header
+        type: string
+      signature:
+        description: signature
+        type: string
+      signatures:
+        description: List of signatures
+        items:
+          $ref: '#/definitions/AttachDecoratorData1JWS'
+        type: array
+    type: object
+  AttachDecoratorDataJWSHeader:
+    properties:
+      kid:
+        description: Key identifier, in W3C did:key or DID URL format
+        type: string
+    required:
+    - kid
+    type: object
+  AttachmentDef:
+    properties:
+      id:
+        description: Attachment identifier
+        type: string
+      type:
+        description: Attachment type
+        enum:
+        - credential-offer
+        - present-proof
+        type: string
+    type: object
+  AttributeMimeTypesResult:
+    properties: {}
+    type: object
+  BasicMessageModuleResponse:
+    properties: {}
+    type: object
+  ClearPendingRevocationsRequest:
+    properties:
+      purge:
+        additionalProperties:
+          items:
+            description: Credential revocation identifier
+            type: string
+          type: array
+        description: 'Credential revocation ids by revocation registry id: omit for
+          all, specify null or empty list for all pending per revocation registry'
+        type: object
+    type: object
+  ConnRecord:
+    properties:
+      accept:
+        description: 'Connection acceptance: manual or auto'
+        enum:
+        - manual
+        - auto
+        type: string
+      alias:
+        description: Optional alias to apply to connection for later use
+        type: string
+      connection_id:
+        description: Connection identifier
+        type: string
+      created_at:
+        description: Time of record creation
+        type: string
+      error_msg:
+        description: Error message
+        type: string
+      inbound_connection_id:
+        description: Inbound routing connection id to use
+        type: string
+      invitation_key:
+        description: Public key for connection
+        type: string
+      invitation_mode:
+        description: Invitation mode
+        enum:
+        - once
+        - multi
+        - static
+        type: string
+      invitation_msg_id:
+        description: ID of out-of-band invitation message
+        type: string
+      my_did:
+        description: Our DID for connection
+        type: string
+      request_id:
+        description: Connection request identifier
+        type: string
+      rfc23_state:
+        description: State per RFC 23
+        readOnly: true
+        type: string
+      routing_state:
+        description: Routing state of connection
+        enum:
+        - none
+        - request
+        - active
+        - error
+        type: string
+      state:
+        description: Current record state
+        type: string
+      their_did:
+        description: Their DID for connection
+        type: string
+      their_label:
+        description: Their label for connection
+        type: string
+      their_public_did:
+        description: Other agent's public DID for connection
+        type: string
+      their_role:
+        description: Their role in the connection protocol
+        enum:
+        - invitee
+        - requester
+        - inviter
+        - responder
+        type: string
+      updated_at:
+        description: Time of last record update
+        type: string
+    type: object
+  ConnectionInvitation:
+    properties:
+      '@id':
+        description: Message identifier
+        type: string
+      '@type':
+        description: Message type
+        readOnly: true
+        type: string
+      did:
+        description: DID for connection invitation
+        type: string
+      imageUrl:
+        description: Optional image URL for connection invitation
+        format: url
+        type: string
+        x-nullable: true
+      label:
+        description: Optional label for connection
+        type: string
+      recipientKeys:
+        description: List of recipient keys
+        items:
+          description: Recipient public key
+          type: string
+        type: array
+      routingKeys:
+        description: List of routing keys
+        items:
+          description: Routing key
+          type: string
+        type: array
+      serviceEndpoint:
+        description: Service endpoint at which to reach this agent
+        type: string
+    type: object
+  ConnectionList:
+    properties:
+      results:
+        description: List of connection records
+        items:
+          $ref: '#/definitions/ConnRecord'
+        type: array
+    type: object
+  ConnectionMetadata:
+    properties:
+      results:
+        description: Dictionary of metadata associated with connection.
+        type: object
+    type: object
+  ConnectionMetadataSetRequest:
+    properties:
+      metadata:
+        description: Dictionary of metadata to set for connection.
+        type: object
+    required:
+    - metadata
+    type: object
+  ConnectionModuleResponse:
+    properties: {}
+    type: object
+  ConnectionStaticRequest:
+    properties:
+      alias:
+        description: Alias to assign to this connection
+        type: string
+      my_did:
+        description: Local DID
+        type: string
+      my_seed:
+        description: Seed to use for the local DID
+        type: string
+      their_did:
+        description: Remote DID
+        type: string
+      their_endpoint:
+        description: URL endpoint for other party
+        type: string
+      their_label:
+        description: Other party's label for this connection
+        type: string
+      their_seed:
+        description: Seed to use for the remote DID
+        type: string
+      their_verkey:
+        description: Remote verification key
+        type: string
+    type: object
+  ConnectionStaticResult:
+    properties:
+      mv_verkey:
+        description: My verification key
+        type: string
+      my_did:
+        description: Local DID
+        type: string
+      my_endpoint:
+        description: My URL endpoint
+        type: string
+      record:
+        $ref: '#/definitions/ConnRecord'
+      their_did:
+        description: Remote DID
+        type: string
+      their_verkey:
+        description: Remote verification key
+        type: string
+    required:
+    - mv_verkey
+    - my_did
+    - my_endpoint
+    - record
+    - their_did
+    - their_verkey
+    type: object
+  CreateInvitationRequest:
+    properties:
+      mediation_id:
+        description: Identifier for active mediation record to be used
+        type: string
+      metadata:
+        description: Optional metadata to attach to the connection created with the
+          invitation
+        type: object
+      recipient_keys:
+        description: List of recipient keys
+        items:
+          description: Recipient public key
+          type: string
+        type: array
+      routing_keys:
+        description: List of routing keys
+        items:
+          description: Routing key
+          type: string
+        type: array
+      service_endpoint:
+        description: Connection endpoint
+        type: string
+    type: object
+  CredAttrSpec:
+    properties:
+      mime-type:
+        description: 'MIME type: omit for (null) default'
+        type: string
+        x-nullable: true
+      name:
+        description: Attribute name
+        type: string
+      value:
+        description: 'Attribute value: base64-encode if MIME type is present'
+        type: string
+    required:
+    - name
+    - value
+    type: object
+  CredBrief:
+    properties:
+      attrs:
+        additionalProperties:
+          description: Attribute value
+          type: string
+        description: Attribute names mapped to their raw values
+        type: object
+      cred_def_id:
+        description: Credential definition identifier
+        type: string
+      cred_rev_id:
+        description: Credential revocation identifier
+        type: string
+      referent:
+        description: Credential referent
+        type: string
+      rev_reg_id:
+        description: Revocation registry identifier
+        type: string
+      schema_id:
+        description: Schema identifier
+        type: string
+    type: object
+  CredBriefList:
+    properties:
+      results:
+        items:
+          $ref: '#/definitions/CredBrief'
+        type: array
+    type: object
+  CredRevRecordResult:
+    properties: {}
+    type: object
+  CredRevokedResult:
+    properties:
+      revoked:
+        description: Whether credential is revoked on the ledger
+        type: boolean
+    type: object
+  CredentialDefinition:
+    properties:
+      id:
+        description: Credential definition identifier
+        type: string
+      schemaId:
+        description: Schema identifier within credential definition identifier
+        type: string
+      tag:
+        description: Tag within credential definition identifier
+        type: string
+      type:
+        default: CL
+        description: 'Signature type: CL for Camenisch-Lysyanskaya'
+      value:
+        description: Credential definition primary and revocation values
+        type: object
+      ver:
+        description: Node protocol version
+        type: string
+    type: object
+  CredentialDefinitionGetResults:
+    properties:
+      credential_definition:
+        $ref: '#/definitions/CredentialDefinition'
+    type: object
+  CredentialDefinitionSendRequest:
+    properties:
+      revocation_registry_size:
+        description: Revocation registry size
+        format: int32
+        maximum: 32768
+        minimum: 4
+        type: integer
+      schema_id:
+        description: Schema identifier
+        type: string
+      support_revocation:
+        description: Revocation supported flag
+        type: boolean
+      tag:
+        description: Credential definition identifier tag
+        type: string
+    type: object
+  CredentialDefinitionSendResults:
+    properties:
+      credential_definition_id:
+        description: Credential definition identifier
+        type: string
+    type: object
+  CredentialDefinitionsCreatedResults:
+    properties:
+      credential_definition_ids:
+        items:
+          description: Credential definition identifiers
+          type: string
+        type: array
+    type: object
+  CredentialPreview:
+    properties:
+      '@type':
+        description: Message type identifier
+        type: string
+      attributes:
+        items:
+          $ref: '#/definitions/CredAttrSpec'
+        type: array
+    required:
+    - attributes
+    type: object
+  DID:
+    properties:
+      did:
+        description: DID of interest
+        type: string
+      posture:
+        description: Whether DID is current public DID, posted to ledger but not current
+          public DID, or local to the wallet
+        enum:
+        - public
+        - posted
+        - wallet_only
+        type: string
+      verkey:
+        description: Public verification key
+        type: string
+    type: object
+  DIDEndpoint:
+    properties:
+      did:
+        description: DID of interest
+        type: string
+      endpoint:
+        description: Endpoint to set (omit to delete)
+        type: string
+    required:
+    - did
+    type: object
+  DIDEndpointWithType:
+    properties:
+      did:
+        description: DID of interest
+        type: string
+      endpoint:
+        description: Endpoint to set (omit to delete)
+        type: string
+      endpoint_type:
+        description: Endpoint type to set (default 'Endpoint'); affects only public
+          or posted DIDs
+        enum:
+        - Endpoint
+        - Profile
+        - LinkedDomains
+        type: string
+    required:
+    - did
+    type: object
+  DIDList:
+    properties:
+      results:
+        description: DID list
+        items:
+          $ref: '#/definitions/DID'
+        type: array
+    type: object
+  DIDResult:
+    properties:
+      result:
+        $ref: '#/definitions/DID'
+    type: object
+  DIDXRequest:
+    properties:
+      '@id':
+        description: Message identifier
+        type: string
+      '@type':
+        description: Message type
+        readOnly: true
+        type: string
+      did:
+        description: DID of exchange
+        type: string
+      did_doc~attach:
+        allOf:
+        - $ref: '#/definitions/AttachDecorator'
+        description: As signed attachment, DID Doc associated with DID
+      label:
+        description: Label for DID exchange request
+        type: string
+    required:
+    - label
+    type: object
+  EndpointsResult:
+    properties:
+      my_endpoint:
+        description: My endpoint
+        type: string
+      their_endpoint:
+        description: Their endpoint
+        type: string
+    type: object
+  HolderModuleResponse:
+    properties: {}
+    type: object
+  IndyCredInfo:
+    properties:
+      attrs:
+        additionalProperties:
+          type: string
+        description: Attribute names and value
+        type: object
+      referent:
+        description: Wallet referent
+        type: string
+    type: object
+  IndyCredPrecis:
+    properties:
+      cred_def_id:
+        description: Credential definition identifier
+        type: string
+      cred_info:
+        allOf:
+        - $ref: '#/definitions/IndyCredInfo'
+        description: Credential info
+      cred_rev:
+        description: Credential revocation identifier
+        type: string
+      interval:
+        allOf:
+        - $ref: '#/definitions/IndyProofReqNonRevoked'
+        description: Non-revocation interval from presentation request
+      presentation_referents:
+        items:
+          description: presentation referent
+          type: string
+        type: array
+      rev_reg_id:
+        description: Revocation registry identifier
+        type: string
+      schema_id:
+        description: Schema identifier
+        type: string
+    type: object
+  IndyProofReqAttrSpec:
+    properties:
+      name:
+        description: Attribute name
+        type: string
+      names:
+        description: Attribute name group
+        items:
+          type: string
+        type: array
+      non_revoked:
+        $ref: '#/definitions/IndyProofReqNonRevoked'
+      restrictions:
+        description: 'If present, credential must satisfy one of given restrictions:
+          specify schema_id, schema_issuer_did, schema_name, schema_version, issuer_did,
+          cred_def_id, and/or attr::<attribute-name>::value where <attribute-name>
+          represents a credential attribute name'
+        items:
+          additionalProperties:
+            type: string
+          type: object
+        type: array
+    type: object
+  IndyProofReqNonRevoked:
+    properties:
+      to:
+        description: Timestamp of interest for non-revocation proof
+        format: int32
+        maximum: 18446744073709551615
+        minimum: 0
+        type: integer
+    required:
+    - to
+    type: object
+  IndyProofReqPredSpec:
+    properties:
+      name:
+        description: Attribute name
+        type: string
+      non_revoked:
+        $ref: '#/definitions/IndyProofReqNonRevoked'
+      p_type:
+        description: Predicate type ('<', '<=', '>=', or '>')
+        enum:
+        - <
+        - <=
+        - '>='
+        - '>'
+        type: string
+      p_value:
+        description: Threshold value
+        format: int32
+        type: integer
+      restrictions:
+        description: If present, credential must satisfy one of given restrictions
+        items:
+          $ref: '#/definitions/IndyProofReqPredSpecRestrictions'
+        type: array
+    required:
+    - name
+    - p_type
+    - p_value
+    type: object
+  IndyProofReqPredSpecRestrictions:
+    properties:
+      cred_def_id:
+        description: Credential definition identifier
+        type: string
+      issuer_did:
+        description: Credential issuer DID
+        type: string
+      schema_id:
+        description: Schema identifier
+        type: string
+      schema_issuer_did:
+        description: Schema issuer (origin) DID
+        type: string
+      schema_name:
+        description: Schema name
+        type: string
+      schema_version:
+        description: Schema version
+        type: string
+    type: object
+  IndyProofRequest:
+    properties:
+      name:
+        description: Proof request name
+        type: string
+      non_revoked:
+        $ref: '#/definitions/IndyProofReqNonRevoked'
+      nonce:
+        description: Nonce
+        type: string
+      requested_attributes:
+        additionalProperties:
+          $ref: '#/definitions/IndyProofReqAttrSpec'
+        description: Requested attribute specifications of proof request
+        type: object
+      requested_predicates:
+        additionalProperties:
+          $ref: '#/definitions/IndyProofReqPredSpec'
+        description: Requested predicate specifications of proof request
+        type: object
+      version:
+        description: Proof request version
+        type: string
+    required:
+    - requested_attributes
+    - requested_predicates
+    type: object
+  IndyRequestedCredsRequestedAttr:
+    properties:
+      cred_id:
+        description: Wallet credential identifier (typically but not necessarily a
+          UUID)
+        type: string
+      revealed:
+        description: Whether to reveal attribute in proof (default true)
+        type: boolean
+    required:
+    - cred_id
+    type: object
+  IndyRequestedCredsRequestedPred:
+    properties:
+      cred_id:
+        description: Wallet credential identifier (typically but not necessarily a
+          UUID)
+        type: string
+      timestamp:
+        description: Epoch timestamp of interest for non-revocation proof
+        format: int32
+        maximum: 18446744073709551615
+        minimum: 0
+        type: integer
+    required:
+    - cred_id
+    type: object
+  IntroModuleResponse:
+    properties: {}
+    type: object
+  InvitationCreateRequest:
+    properties:
+      alias:
+        description: Alias for connection
+        type: string
+      attachments:
+        description: Optional invitation attachments
+        items:
+          $ref: '#/definitions/AttachmentDef'
+        type: array
+      handshake_protocols:
+        items:
+          description: Handshake protocol to specify in invitation
+          type: string
+        type: array
+      mediation_id:
+        description: Identifier for active mediation record to be used
+        type: string
+      metadata:
+        description: Optional metadata to attach to the connection created with the
+          invitation
+        type: object
+      my_label:
+        description: Label for connection invitation
+        type: string
+      use_public_did:
+        description: Whether to use public DID in invitation
+        type: boolean
+    type: object
+  InvitationReceiveRequest:
+    properties:
+      '@id':
+        description: Message identifier
+        type: string
+      '@type':
+        description: Message type
+        readOnly: true
+        type: string
+      handshake_protocols:
+        items:
+          description: Handshake protocol
+          type: string
+        type: array
+      label:
+        description: Optional label
+        type: string
+      request~attach:
+        description: Optional request attachment
+        items:
+          $ref: '#/definitions/AttachDecorator'
+        type: array
+      service: {}
+      service_blocks:
+        items:
+          $ref: '#/definitions/Service'
+        type: array
+      service_dids:
+        items:
+          description: Service DID
+          type: string
+        type: array
+    type: object
+  InvitationRecord:
+    properties:
+      created_at:
+        description: Time of record creation
+        type: string
+      invi_msg_id:
+        description: Invitation message identifier
+        type: string
+      invitation:
+        description: Out of band invitation object
+        type: object
+      invitation_id:
+        description: Invitation record identifier
+        type: string
+      invitation_url:
+        description: Invitation message URL
+        type: string
+      state:
+        description: Out of band message exchange state
+        type: string
+      trace:
+        description: Record trace information, based on agent configuration
+        type: boolean
+      updated_at:
+        description: Time of last record update
+        type: string
+    type: object
+  InvitationResult:
+    properties:
+      connection_id:
+        description: Connection identifier
+        type: string
+      invitation:
+        $ref: '#/definitions/ConnectionInvitation'
+      invitation_url:
+        description: Invitation URL
+        type: string
+    type: object
+  IssueCredentialModuleResponse:
+    properties: {}
+    type: object
+  Keylist:
+    properties:
+      results:
+        description: List of keylist records
+        items:
+          $ref: '#/definitions/RouteRecord'
+        type: array
+    type: object
+  KeylistQuery:
+    properties:
+      '@id':
+        description: Message identifier
+        type: string
+      '@type':
+        description: Message type
+        readOnly: true
+        type: string
+      filter:
+        description: Query dictionary object
+        type: object
+      paginate:
+        allOf:
+        - $ref: '#/definitions/KeylistQueryPaginate'
+        description: Pagination info
+    type: object
+  KeylistQueryFilterRequest:
+    properties:
+      filter:
+        description: Filter for keylist query.
+        type: object
+    type: object
+  KeylistQueryPaginate:
+    properties:
+      limit:
+        description: Limit for keylist query
+        format: int32
+        type: integer
+      offset:
+        description: Offset value for query
+        format: int32
+        type: integer
+    type: object
+  KeylistUpdate:
+    properties:
+      '@id':
+        description: Message identifier
+        type: string
+      '@type':
+        description: Message type
+        readOnly: true
+        type: string
+      updates:
+        description: List of update rules
+        items:
+          $ref: '#/definitions/KeylistUpdateRule'
+        type: array
+    type: object
+  KeylistUpdateRequest:
+    properties:
+      updates:
+        items:
+          $ref: '#/definitions/KeylistUpdateRule'
+        type: array
+    type: object
+  KeylistUpdateRule:
+    properties:
+      action:
+        description: Action for specific key
+        enum:
+        - add
+        - remove
+        type: string
+      recipient_key:
+        description: Key to remove or add
+        type: string
+    required:
+    - action
+    - recipient_key
+    type: object
+  LedgerModulesResult:
+    properties: {}
+    type: object
+  MediationCreateRequest:
+    properties:
+      mediator_terms:
+        description: List of mediator rules for recipient
+        items:
+          description: Indicate terms that the mediator requires the recipient to
+            agree to
+          type: string
+        type: array
+      recipient_terms:
+        description: List of recipient rules for mediation
+        items:
+          description: Indicate terms that the recipient requires the mediator to
+            agree to
+          type: string
+        type: array
+    type: object
+  MediationDeny:
+    properties:
+      '@id':
+        description: Message identifier
+        type: string
+      '@type':
+        description: Message type
+        readOnly: true
+        type: string
+      mediator_terms:
+        items:
+          description: Terms for mediator to agree
+          type: string
+        type: array
+      recipient_terms:
+        items:
+          description: Terms for recipient to agree
+          type: string
+        type: array
+    type: object
+  MediationGrant:
+    properties:
+      '@id':
+        description: Message identifier
+        type: string
+      '@type':
+        description: Message type
+        readOnly: true
+        type: string
+      endpoint:
+        description: endpoint on which messages destined for the recipient are received.
+        type: string
+      routing_keys:
+        items:
+          description: Keys to use for forward message packaging
+          type: string
+        type: array
+    type: object
+  MediationList:
+    properties:
+      results:
+        description: List of mediation records
+        items:
+          $ref: '#/definitions/MediationRecord'
+        type: array
+    type: object
+  MediationRecord:
+    properties:
+      connection_id:
+        type: string
+      created_at:
+        description: Time of record creation
+        type: string
+      endpoint:
+        type: string
+      mediation_id:
+        type: string
+      mediator_terms:
+        items:
+          type: string
+        type: array
+      recipient_terms:
+        items:
+          type: string
+        type: array
+      role:
+        type: string
+      routing_keys:
+        items:
+          type: string
+        type: array
+      state:
+        description: Current record state
+        type: string
+      updated_at:
+        description: Time of last record update
+        type: string
+    required:
+    - connection_id
+    - role
+    type: object
+  MenuForm:
+    properties:
+      description:
+        description: Additional descriptive text for menu form
+        type: string
+      params:
+        description: List of form parameters
+        items:
+          $ref: '#/definitions/MenuFormParam'
+        type: array
+      submit-label:
+        description: Alternative label for form submit button
+        type: string
+      title:
+        description: Menu form title
+        type: string
+    type: object
+  MenuFormParam:
+    properties:
+      default:
+        description: Default parameter value
+        type: string
+      description:
+        description: Additional descriptive text for menu form parameter
+        type: string
+      name:
+        description: Menu parameter name
+        type: string
+      required:
+        description: Whether parameter is required
+        type: boolean
+      title:
+        description: Menu parameter title
+        type: string
+      type:
+        description: Menu form parameter input type
+        type: string
+    required:
+    - name
+    - title
+    type: object
+  MenuJson:
+    properties:
+      description:
+        description: Introductory text for the menu
+        type: string
+      errormsg:
+        description: Optional error message to display in menu header
+        type: string
+      options:
+        description: List of menu options
+        items:
+          $ref: '#/definitions/MenuOption'
+        type: array
+      title:
+        description: Menu title
+        type: string
+    required:
+    - options
+    type: object
+  MenuOption:
+    properties:
+      description:
+        description: Additional descriptive text for menu option
+        type: string
+      disabled:
+        description: Whether to show option as disabled
+        type: boolean
+      form:
+        $ref: '#/definitions/MenuForm'
+      name:
+        description: Menu option name (unique identifier)
+        type: string
+      title:
+        description: Menu option title
+        type: string
+    required:
+    - name
+    - title
+    type: object
+  PerformRequest:
+    properties:
+      name:
+        description: Menu option name
+        type: string
+      params:
+        additionalProperties:
+          type: string
+        description: Input parameter values
+        type: object
+    type: object
+  PingRequest:
+    properties:
+      comment:
+        description: Comment for the ping message
+        type: string
+        x-nullable: true
+    type: object
+  PingRequestResponse:
+    properties:
+      thread_id:
+        description: Thread ID of the ping message
+        type: string
+    type: object
+  PresAttrSpec:
+    properties:
+      cred_def_id:
+        type: string
+      mime-type:
+        description: MIME type (default null)
+        type: string
+      name:
+        description: Attribute name
+        type: string
+      referent:
+        description: Credential referent
+        type: string
+      value:
+        description: Attribute value
+        type: string
+    required:
+    - name
+    type: object
+  PresPredSpec:
+    properties:
+      cred_def_id:
+        description: Credential definition identifier
+        type: string
+      name:
+        description: Attribute name
+        type: string
+      predicate:
+        description: Predicate type ('<', '<=', '>=', or '>')
+        enum:
+        - <
+        - <=
+        - '>='
+        - '>'
+        type: string
+      threshold:
+        description: Threshold value
+        format: int32
+        type: integer
+    required:
+    - name
+    - predicate
+    - threshold
+    type: object
+  PresentProofModuleResponse:
+    properties: {}
+    type: object
+  PresentationPreview:
+    properties:
+      '@type':
+        description: Message type identifier
+        type: string
+      attributes:
+        items:
+          $ref: '#/definitions/PresAttrSpec'
+        type: array
+      predicates:
+        items:
+          $ref: '#/definitions/PresPredSpec'
+        type: array
+    required:
+    - attributes
+    - predicates
+    type: object
+  PublishRevocations:
+    properties:
+      rrid2crid:
+        additionalProperties:
+          items:
+            description: Credential revocation identifier
+            type: string
+          type: array
+        description: Credential revocation ids by revocation registry id
+        type: object
+    type: object
+  QueryResult:
+    properties:
+      results:
+        additionalProperties:
+          description: Protocol descriptor
+          type: object
+        description: Query results keyed by protocol
+        type: object
+    type: object
+  ReceiveInvitationRequest:
+    properties:
+      '@id':
+        description: Message identifier
+        type: string
+      '@type':
+        description: Message type
+        readOnly: true
+        type: string
+      did:
+        description: DID for connection invitation
+        type: string
+      imageUrl:
+        description: Optional image URL for connection invitation
+        format: url
+        type: string
+        x-nullable: true
+      label:
+        description: Optional label for connection
+        type: string
+      recipientKeys:
+        description: List of recipient keys
+        items:
+          description: Recipient public key
+          type: string
+        type: array
+      routingKeys:
+        description: List of routing keys
+        items:
+          description: Routing key
+          type: string
+        type: array
+      serviceEndpoint:
+        description: Service endpoint at which to reach this agent
+        type: string
+    type: object
+  RevRegCreateRequest:
+    properties:
+      credential_definition_id:
+        description: Credential definition identifier
+        type: string
+      max_cred_num:
+        description: Revocation registry size
+        format: int32
+        maximum: 32768
+        minimum: 4
+        type: integer
+    type: object
+  RevRegIssuedResult:
+    properties:
+      result:
+        description: Number of credentials issued against revocation registry
+        format: int32
+        minimum: 0
+        type: integer
+    type: object
+  RevRegResult:
+    properties: {}
+    type: object
+  RevRegUpdateTailsFileUri:
+    properties:
+      tails_public_uri:
+        description: Public URI to the tails file
+        format: url
+        type: string
+    required:
+    - tails_public_uri
+    type: object
+  RevRegsCreated:
+    properties:
+      rev_reg_ids:
+        items:
+          description: Revocation registry identifiers
+          type: string
+        type: array
+    type: object
+  RevocationModuleResponse:
+    properties: {}
+    type: object
+  RevokeRequest:
+    properties:
+      cred_ex_id:
+        description: Credential exchange identifier
+        type: string
+      cred_rev_id:
+        description: Credential revocation identifier
+        type: string
+      publish:
+        description: (True) publish revocation to ledger immediately, or (default,
+          False) mark it pending
+        type: boolean
+      rev_reg_id:
+        description: Revocation registry identifier
+        type: string
+    type: object
+  RouteRecord:
+    properties:
+      connection_id:
+        type: string
+      created_at:
+        description: Time of record creation
+        type: string
+      recipient_key:
+        type: string
+      record_id:
+        type: string
+      role:
+        type: string
+      state:
+        description: Current record state
+        type: string
+      updated_at:
+        description: Time of last record update
+        type: string
+      wallet_id:
+        type: string
+    required:
+    - recipient_key
+    type: object
+  Schema:
+    properties:
+      attrNames:
+        description: Schema attribute names
+        items:
+          description: Attribute name
+          type: string
+        type: array
+      id:
+        description: Schema identifier
+        type: string
+      name:
+        description: Schema name
+        type: string
+      seqNo:
+        description: Schema sequence number
+        format: int32
+        minimum: 1
+        type: integer
+      ver:
+        description: Node protocol version
+        type: string
+      version:
+        description: Schema version
+        type: string
+    type: object
+  SchemaGetResults:
+    properties:
+      schema:
+        $ref: '#/definitions/Schema'
+    type: object
+  SchemaSendRequest:
+    properties:
+      attributes:
+        description: List of schema attributes
+        items:
+          description: attribute name
+          type: string
+        type: array
+      schema_name:
+        description: Schema name
+        type: string
+      schema_version:
+        description: Schema version
+        type: string
+    required:
+    - attributes
+    - schema_name
+    - schema_version
+    type: object
+  SchemaSendResults:
+    properties:
+      schema:
+        description: Schema result
+        type: object
+      schema_id:
+        description: Schema identifier
+        type: string
+    required:
+    - schema
+    - schema_id
+    type: object
+  SchemasCreatedResults:
+    properties:
+      schema_ids:
+        items:
+          description: Schema identifiers
+          type: string
+        type: array
+    type: object
+  SendMenu:
+    properties:
+      menu:
+        allOf:
+        - $ref: '#/definitions/MenuJson'
+        description: Menu to send to connection
+    required:
+    - menu
+    type: object
+  SendMessage:
+    properties:
+      content:
+        description: Message content
+        type: string
+    type: object
+  Service:
+    properties:
+      did:
+        description: Service DID
+        type: string
+      id:
+        description: Service identifier
+        type: string
+      recipientKeys:
+        description: List of recipient keys
+        items:
+          description: Recipient public key
+          type: string
+        type: array
+      routingKeys:
+        description: List of routing keys
+        items:
+          description: Routing key
+          type: string
+        type: array
+      serviceEndpoint:
+        description: Service endpoint at which to reach this agent
+        type: string
+      type:
+        description: Service type
+        type: string
+    required:
+    - id
+    - type
+    type: object
+  TAAAccept:
+    properties:
+      mechanism:
+        type: string
+      text:
+        type: string
+      version:
+        type: string
+    type: object
+  TAAAcceptance:
+    properties:
+      mechanism:
+        type: string
+      time:
+        format: int32
+        maximum: 18446744073709551615
+        minimum: 0
+        type: integer
+    type: object
+  TAAInfo:
+    properties:
+      aml_record:
+        $ref: '#/definitions/AMLRecord'
+      taa_accepted:
+        $ref: '#/definitions/TAAAcceptance'
+      taa_record:
+        $ref: '#/definitions/TAARecord'
+      taa_required:
+        type: boolean
+    type: object
+  TAARecord:
+    properties:
+      digest:
+        type: string
+      text:
+        type: string
+      version:
+        type: string
+    type: object
+  TAAResult:
+    properties:
+      result:
+        $ref: '#/definitions/TAAInfo'
+    type: object
+  V10CredentialCreate:
+    properties:
+      auto_remove:
+        description: Whether to remove the credential exchange record on completion
+          (overrides --preserve-exchange-records configuration setting)
+        type: boolean
+      comment:
+        description: Human-readable comment
+        type: string
+        x-nullable: true
+      cred_def_id:
+        description: Credential definition identifier
+        type: string
+      credential_proposal:
+        $ref: '#/definitions/CredentialPreview'
+      issuer_did:
+        description: Credential issuer DID
+        type: string
+      schema_id:
+        description: Schema identifier
+        type: string
+      schema_issuer_did:
+        description: Schema issuer DID
+        type: string
+      schema_name:
+        description: Schema name
+        type: string
+      schema_version:
+        description: Schema version
+        type: string
+      trace:
+        description: Whether to trace event (default false)
+        type: boolean
+    required:
+    - credential_proposal
+    type: object
+  V10CredentialExchange:
+    properties:
+      auto_issue:
+        description: Issuer choice to issue to request in this credential exchange
+        type: boolean
+      auto_offer:
+        description: Holder choice to accept offer in this credential exchange
+        type: boolean
+      auto_remove:
+        description: Issuer choice to remove this credential exchange record when
+          complete
+        type: boolean
+      connection_id:
+        description: Connection identifier
+        type: string
+      created_at:
+        description: Time of record creation
+        type: string
+      credential:
+        description: Credential as stored
+        type: object
+      credential_definition_id:
+        description: Credential definition identifier
+        type: string
+      credential_exchange_id:
+        description: Credential exchange identifier
+        type: string
+      credential_id:
+        description: Credential identifier
+        type: string
+      credential_offer:
+        description: (Indy) credential offer
+        type: object
+      credential_offer_dict:
+        description: Serialized credential offer message
+        type: object
+      credential_proposal_dict:
+        description: Serialized credential proposal message
+        type: object
+      credential_request:
+        description: (Indy) credential request
+        type: object
+      credential_request_metadata:
+        description: (Indy) credential request metadata
+        type: object
+      error_msg:
+        description: Error message
+        type: string
+      initiator:
+        description: 'Issue-credential exchange initiator: self or external'
+        enum:
+        - self
+        - external
+        type: string
+      parent_thread_id:
+        description: Parent thread identifier
+        type: string
+      raw_credential:
+        description: Credential as received, prior to storage in holder wallet
+        type: object
+      revoc_reg_id:
+        description: Revocation registry identifier
+        type: string
+      revocation_id:
+        description: Credential identifier within revocation registry
+        type: string
+      role:
+        description: 'Issue-credential exchange role: holder or issuer'
+        enum:
+        - holder
+        - issuer
+        type: string
+      schema_id:
+        description: Schema identifier
+        type: string
+      state:
+        description: Issue-credential exchange state
+        type: string
+      thread_id:
+        description: Thread identifier
+        type: string
+      trace:
+        description: Record trace information, based on agent configuration
+        type: boolean
+      updated_at:
+        description: Time of last record update
+        type: string
+    type: object
+  V10CredentialExchangeListResult:
+    properties:
+      results:
+        description: Aries#0036 v1.0 credential exchange records
+        items:
+          $ref: '#/definitions/V10CredentialExchange'
+        type: array
+    type: object
+  V10CredentialIssueRequest:
+    properties:
+      comment:
+        description: Human-readable comment
+        type: string
+        x-nullable: true
+    type: object
+  V10CredentialOfferRequest:
+    properties:
+      auto_issue:
+        description: Whether to respond automatically to credential requests, creating
+          and issuing requested credentials
+        type: boolean
+      auto_remove:
+        description: Whether to remove the credential exchange record on completion
+          (overrides --preserve-exchange-records configuration setting)
+        type: boolean
+      comment:
+        description: Human-readable comment
+        type: string
+        x-nullable: true
+      connection_id:
+        description: Connection identifier
+        format: uuid
+        type: string
+      cred_def_id:
+        description: Credential definition identifier
+        type: string
+      credential_preview:
+        $ref: '#/definitions/CredentialPreview'
+      trace:
+        description: Whether to trace event (default false)
+        type: boolean
+    required:
+    - connection_id
+    - cred_def_id
+    - credential_preview
+    type: object
+  V10CredentialProblemReportRequest:
+    properties:
+      explain_ltxt:
+        type: string
+    required:
+    - explain_ltxt
+    type: object
+  V10CredentialProposalRequestMand:
+    properties:
+      auto_remove:
+        description: Whether to remove the credential exchange record on completion
+          (overrides --preserve-exchange-records configuration setting)
+        type: boolean
+      comment:
+        description: Human-readable comment
+        type: string
+        x-nullable: true
+      connection_id:
+        description: Connection identifier
+        format: uuid
+        type: string
+      cred_def_id:
+        description: Credential definition identifier
+        type: string
+      credential_proposal:
+        $ref: '#/definitions/CredentialPreview'
+      issuer_did:
+        description: Credential issuer DID
+        type: string
+      schema_id:
+        description: Schema identifier
+        type: string
+      schema_issuer_did:
+        description: Schema issuer DID
+        type: string
+      schema_name:
+        description: Schema name
+        type: string
+      schema_version:
+        description: Schema version
+        type: string
+      trace:
+        description: Whether to trace event (default false)
+        type: boolean
+    required:
+    - connection_id
+    - credential_proposal
+    type: object
+  V10CredentialProposalRequestOpt:
+    properties:
+      auto_remove:
+        description: Whether to remove the credential exchange record on completion
+          (overrides --preserve-exchange-records configuration setting)
+        type: boolean
+      comment:
+        description: Human-readable comment
+        type: string
+        x-nullable: true
+      connection_id:
+        description: Connection identifier
+        format: uuid
+        type: string
+      cred_def_id:
+        description: Credential definition identifier
+        type: string
+      credential_proposal:
+        $ref: '#/definitions/CredentialPreview'
+      issuer_did:
+        description: Credential issuer DID
+        type: string
+      schema_id:
+        description: Schema identifier
+        type: string
+      schema_issuer_did:
+        description: Schema issuer DID
+        type: string
+      schema_name:
+        description: Schema name
+        type: string
+      schema_version:
+        description: Schema version
+        type: string
+      trace:
+        description: Whether to trace event (default false)
+        type: boolean
+    required:
+    - connection_id
+    type: object
+  V10CredentialStoreRequest:
+    properties:
+      credential_id:
+        type: string
+    type: object
+  V10PresentationCreateRequestRequest:
+    properties:
+      comment:
+        type: string
+        x-nullable: true
+      proof_request:
+        $ref: '#/definitions/IndyProofRequest'
+      trace:
+        description: Whether to trace event (default false)
+        type: boolean
+    required:
+    - proof_request
+    type: object
+  V10PresentationExchange:
+    properties:
+      auto_present:
+        description: Prover choice to auto-present proof as verifier requests
+        type: boolean
+      connection_id:
+        description: Connection identifier
+        type: string
+      created_at:
+        description: Time of record creation
+        type: string
+      error_msg:
+        description: Error message
+        type: string
+      initiator:
+        description: 'Present-proof exchange initiator: self or external'
+        enum:
+        - self
+        - external
+        type: string
+      presentation:
+        description: (Indy) presentation (also known as proof)
+        type: object
+      presentation_exchange_id:
+        description: Presentation exchange identifier
+        type: string
+      presentation_proposal_dict:
+        description: Serialized presentation proposal message
+        type: object
+      presentation_request:
+        description: (Indy) presentation request (also known as proof request)
+        type: object
+      presentation_request_dict:
+        description: Serialized presentation request message
+        type: object
+      role:
+        description: 'Present-proof exchange role: prover or verifier'
+        enum:
+        - prover
+        - verifier
+        type: string
+      state:
+        description: Present-proof exchange state
+        type: string
+      thread_id:
+        description: Thread identifier
+        type: string
+      trace:
+        description: Record trace information, based on agent configuration
+        type: boolean
+      updated_at:
+        description: Time of last record update
+        type: string
+      verified:
+        description: 'Whether presentation is verified: true or false'
+        enum:
+        - 'true'
+        - 'false'
+        type: string
+    type: object
+  V10PresentationExchangeList:
+    properties:
+      results:
+        description: Aries RFC 37 v1.0 presentation exchange records
+        items:
+          $ref: '#/definitions/V10PresentationExchange'
+        type: array
+    type: object
+  V10PresentationProblemReportRequest:
+    properties:
+      explain_ltxt:
+        type: string
+    required:
+    - explain_ltxt
+    type: object
+  V10PresentationProposalRequest:
+    properties:
+      auto_present:
+        description: Whether to respond automatically to presentation requests, building
+          and presenting requested proof
+        type: boolean
+      comment:
+        description: Human-readable comment
+        type: string
+        x-nullable: true
+      connection_id:
+        description: Connection identifier
+        format: uuid
+        type: string
+      presentation_proposal:
+        $ref: '#/definitions/PresentationPreview'
+      trace:
+        description: Whether to trace event (default false)
+        type: boolean
+    required:
+    - connection_id
+    - presentation_proposal
+    type: object
+  V10PresentationRequest:
+    properties:
+      requested_attributes:
+        additionalProperties:
+          $ref: '#/definitions/IndyRequestedCredsRequestedAttr'
+        description: Nested object mapping proof request attribute referents to requested-attribute
+          specifiers
+        type: object
+      requested_predicates:
+        additionalProperties:
+          $ref: '#/definitions/IndyRequestedCredsRequestedPred'
+        description: Nested object mapping proof request predicate referents to requested-predicate
+          specifiers
+        type: object
+      self_attested_attributes:
+        additionalProperties:
+          description: Self-attested attribute values to use in requested-credentials
+            structure for proof construction
+          type: string
+        description: Self-attested attributes to build into proof
+        type: object
+      trace:
+        description: Whether to trace event (default false)
+        type: boolean
+    required:
+    - requested_attributes
+    - requested_predicates
+    - self_attested_attributes
+    type: object
+  V10PresentationSendRequestRequest:
+    properties:
+      comment:
+        type: string
+        x-nullable: true
+      connection_id:
+        description: Connection identifier
+        format: uuid
+        type: string
+      proof_request:
+        $ref: '#/definitions/IndyProofRequest'
+      trace:
+        description: Whether to trace event (default false)
+        type: boolean
+    required:
+    - connection_id
+    - proof_request
+    type: object
+  V20CredAttrSpec:
+    properties:
+      mime-type:
+        description: 'MIME type: omit for (null) default'
+        type: string
+        x-nullable: true
+      name:
+        description: Attribute name
+        type: string
+      value:
+        description: 'Attribute value: base64-encode if MIME type is present'
+        type: string
+    required:
+    - name
+    - value
+    type: object
+  V20CredCreate:
+    properties:
+      auto_remove:
+        description: Whether to remove the credential exchange record on completion
+          (overrides --preserve-exchange-records configuration setting)
+        type: boolean
+      comment:
+        description: Human-readable comment
+        type: string
+        x-nullable: true
+      credential_preview:
+        $ref: '#/definitions/V20CredPreview'
+      filter:
+        allOf:
+        - $ref: '#/definitions/V20CredFilter'
+        description: Credential specification criteria by format
+      trace:
+        description: Whether to trace event (default false)
+        type: boolean
+    required:
+    - credential_preview
+    - filter
+    type: object
+  V20CredExRecord:
+    properties:
+      auto_issue:
+        description: Issuer choice to issue to request in this credential exchange
+        type: boolean
+      auto_offer:
+        description: Holder choice to accept offer in this credential exchange
+        type: boolean
+      auto_remove:
+        description: Issuer choice to remove this credential exchange record when
+          complete
+        type: boolean
+      conn_id:
+        description: Connection identifier
+        type: string
+      created_at:
+        description: Time of record creation
+        type: string
+      cred_ex_id:
+        description: Credential exchange identifier
+        type: string
+      cred_id_stored:
+        description: Credential identifier stored in wallet
+        type: string
+      cred_issue:
+        description: Serialized credential issue message
+        type: object
+      cred_offer:
+        description: Serialized credential offer message
+        type: object
+      cred_preview:
+        description: Serialized credential preview from credential proposal
+        readOnly: true
+        type: object
+      cred_proposal:
+        description: Serialized credential proposal message
+        type: object
+      cred_request:
+        description: Serialized credential request message
+        type: object
+      cred_request_metadata:
+        description: (Indy) credential request metadata
+        type: object
+      error_msg:
+        description: Error message
+        type: string
+      initiator:
+        description: 'Issue-credential exchange initiator: self or external'
+        enum:
+        - self
+        - external
+        type: string
+      parent_thread_id:
+        description: Parent thread identifier
+        type: string
+      role:
+        description: 'Issue-credential exchange role: holder or issuer'
+        enum:
+        - issuer
+        - holder
+        type: string
+      state:
+        description: Issue-credential exchange state
+        enum:
+        - proposal-sent
+        - proposal-received
+        - offer-sent
+        - offer-received
+        - request-sent
+        - request-received
+        - credential-issued
+        - credential-received
+        - done
+        type: string
+      thread_id:
+        description: Thread identifier
+        type: string
+      trace:
+        description: Record trace information, based on agent configuration
+        type: boolean
+      updated_at:
+        description: Time of last record update
+        type: string
+    type: object
+  V20CredExRecordDIF:
+    properties:
+      created_at:
+        description: Time of record creation
+        type: string
+      cred_ex_dif_id:
+        description: Record identifier
+        type: string
+      cred_ex_id:
+        description: Corresponding v2.0 credential exchange record identifier
+        type: string
+      item:
+        description: DIF item
+        type: object
+      state:
+        description: Current record state
+        type: string
+      updated_at:
+        description: Time of last record update
+        type: string
+    type: object
+  V20CredExRecordDetail:
+    properties:
+      cred_ex_record:
+        allOf:
+        - $ref: '#/definitions/V20CredExRecord'
+        description: Credential exchange record
+      dif:
+        $ref: '#/definitions/V20CredExRecordDIF'
+      indy:
+        $ref: '#/definitions/V20CredExRecordIndy'
+    type: object
+  V20CredExRecordIndy:
+    properties:
+      created_at:
+        description: Time of record creation
+        type: string
+      cred_ex_id:
+        description: Corresponding v2.0 credential exchange record identifier
+        type: string
+      cred_ex_indy_id:
+        description: Record identifier
+        type: string
+      cred_request_metadata:
+        description: Credential request metadata for indy holder
+        type: object
+      cred_rev_id:
+        description: Credential revocation identifier within revocation registry
+        type: string
+      rev_reg_id:
+        description: Revocation registry identifier
+        type: string
+      state:
+        description: Current record state
+        type: string
+      updated_at:
+        description: Time of last record update
+        type: string
+    type: object
+  V20CredExRecordListResult:
+    properties:
+      results:
+        description: Credential exchange records and corresponding detail records
+        items:
+          $ref: '#/definitions/V20CredExRecordDetail'
+        type: array
+    type: object
+  V20CredFilter:
+    properties:
+      dif:
+        allOf:
+        - $ref: '#/definitions/V20CredFilterDIF'
+        description: Credential filter for DIF
+      indy:
+        allOf:
+        - $ref: '#/definitions/V20CredFilterIndy'
+        description: Credential filter for indy
+    type: object
+  V20CredFilterDIF:
+    properties:
+      some_dif_criterion:
+        description: Placeholder for W3C/DIF/JSON-LD filtration criterion
+        type: string
+    type: object
+  V20CredFilterIndy:
+    properties:
+      cred_def_id:
+        description: Credential definition identifier
+        type: string
+      issuer_did:
+        description: Credential issuer DID
+        type: string
+      schema_id:
+        description: Schema identifier
+        type: string
+      schema_issuer_did:
+        description: Schema issuer DID
+        type: string
+      schema_name:
+        description: Schema name
+        type: string
+      schema_version:
+        description: Schema version
+        type: string
+    type: object
+  V20CredIssueProblemReportRequest:
+    properties:
+      explain_ltxt:
+        type: string
+    required:
+    - explain_ltxt
+    type: object
+  V20CredIssueRequest:
+    properties:
+      comment:
+        description: Human-readable comment
+        type: string
+        x-nullable: true
+    type: object
+  V20CredOfferRequest:
+    properties:
+      auto_issue:
+        description: Whether to respond automatically to credential requests, creating
+          and issuing requested credentials
+        type: boolean
+      auto_remove:
+        description: Whether to remove the credential exchange record on completion
+          (overrides --preserve-exchange-records configuration setting)
+        type: boolean
+      comment:
+        description: Human-readable comment
+        type: string
+        x-nullable: true
+      connection_id:
+        description: Connection identifier
+        format: uuid
+        type: string
+      credential_preview:
+        $ref: '#/definitions/V20CredPreview'
+      filter:
+        allOf:
+        - $ref: '#/definitions/V20CredFilter'
+        description: Credential specification criteria by format
+      trace:
+        description: Whether to trace event (default false)
+        type: boolean
+    required:
+    - connection_id
+    - credential_preview
+    - filter
+    type: object
+  V20CredPreview:
+    properties:
+      '@type':
+        description: Message type identifier
+        type: string
+      attributes:
+        items:
+          $ref: '#/definitions/V20CredAttrSpec'
+        type: array
+    required:
+    - attributes
+    type: object
+  V20CredProposalRequestPreviewMand:
+    properties:
+      auto_remove:
+        description: Whether to remove the credential exchange record on completion
+          (overrides --preserve-exchange-records configuration setting)
+        type: boolean
+      comment:
+        description: Human-readable comment
+        type: string
+        x-nullable: true
+      connection_id:
+        description: Connection identifier
+        format: uuid
+        type: string
+      credential_preview:
+        $ref: '#/definitions/V20CredPreview'
+      filter:
+        allOf:
+        - $ref: '#/definitions/V20CredFilter'
+        description: Credential specification criteria by format
+      trace:
+        description: Whether to trace event (default false)
+        type: boolean
+    required:
+    - connection_id
+    - credential_preview
+    - filter
+    type: object
+  V20CredProposalRequestPreviewOpt:
+    properties:
+      auto_remove:
+        description: Whether to remove the credential exchange record on completion
+          (overrides --preserve-exchange-records configuration setting)
+        type: boolean
+      comment:
+        description: Human-readable comment
+        type: string
+        x-nullable: true
+      connection_id:
+        description: Connection identifier
+        format: uuid
+        type: string
+      credential_preview:
+        $ref: '#/definitions/V20CredPreview'
+      filter:
+        allOf:
+        - $ref: '#/definitions/V20CredFilter'
+        description: Credential specification criteria by format
+      trace:
+        description: Whether to trace event (default false)
+        type: boolean
+    required:
+    - connection_id
+    - filter
+    type: object
+  V20CredStoreRequest:
+    properties:
+      credential_id:
+        type: string
+    type: object
+  V20IssueCredentialModuleResponse:
+    properties: {}
+    type: object
+  WalletModuleResponse:
+    properties: {}
+    type: object
+info:
+  title: Aries Cloud Agent
+  version: v0.6.0
+paths:
+  /action-menu/{conn_id}/close:
+    post:
+      parameters:
+      - description: Connection identifier
+        in: path
+        name: conn_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/ActionMenuModulesResult'
+      summary: Close the active menu associated with a connection
+      tags:
+      - action-menu
+  /action-menu/{conn_id}/fetch:
+    post:
+      parameters:
+      - description: Connection identifier
+        in: path
+        name: conn_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/ActionMenuModulesResult'
+      summary: Fetch the active menu
+      tags:
+      - action-menu
+  /action-menu/{conn_id}/perform:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/PerformRequest'
+      - description: Connection identifier
+        in: path
+        name: conn_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/ActionMenuModulesResult'
+      summary: Perform an action associated with the active menu
+      tags:
+      - action-menu
+  /action-menu/{conn_id}/request:
+    post:
+      parameters:
+      - description: Connection identifier
+        in: path
+        name: conn_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/ActionMenuModulesResult'
+      summary: Request the active menu
+      tags:
+      - action-menu
+  /action-menu/{conn_id}/send-menu:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/SendMenu'
+      - description: Connection identifier
+        in: path
+        name: conn_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/ActionMenuModulesResult'
+      summary: Send an action menu to a connection
+      tags:
+      - action-menu
+  /connections:
+    get:
+      parameters:
+      - description: Alias
+        in: query
+        name: alias
+        required: false
+        type: string
+      - description: invitation key
+        in: query
+        name: invitation_key
+        required: false
+        type: string
+      - description: My DID
+        in: query
+        name: my_did
+        required: false
+        type: string
+      - description: Connection state
+        enum:
+        - start
+        - error
+        - response
+        - init
+        - abandoned
+        - active
+        - request
+        - invitation
+        - completed
+        in: query
+        name: state
+        required: false
+        type: string
+      - description: Their DID
+        in: query
+        name: their_did
+        required: false
+        type: string
+      - description: Their role in the connection protocol
+        enum:
+        - invitee
+        - requester
+        - inviter
+        - responder
+        in: query
+        name: their_role
+        required: false
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/ConnectionList'
+      summary: Query agent-to-agent connections
+      tags:
+      - connection
+  /connections/create-invitation:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/CreateInvitationRequest'
+      - description: Alias
+        in: query
+        name: alias
+        required: false
+        type: string
+      - description: Auto-accept connection (defaults to configuration)
+        in: query
+        name: auto_accept
+        required: false
+        type: boolean
+      - description: Create invitation for multiple use (default false)
+        in: query
+        name: multi_use
+        required: false
+        type: boolean
+      - description: Create invitation from public DID (default false)
+        in: query
+        name: public
+        required: false
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/InvitationResult'
+      summary: Create a new connection invitation
+      tags:
+      - connection
+  /connections/create-static:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/ConnectionStaticRequest'
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/ConnectionStaticResult'
+      summary: Create a new static connection
+      tags:
+      - connection
+  /connections/receive-invitation:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/ReceiveInvitationRequest'
+      - description: Alias
+        in: query
+        name: alias
+        required: false
+        type: string
+      - description: Auto-accept connection (defaults to configuration)
+        in: query
+        name: auto_accept
+        required: false
+        type: boolean
+      - description: Identifier for active mediation record to be used
+        in: query
+        name: mediation_id
+        required: false
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/ConnRecord'
+      summary: Receive a new connection invitation
+      tags:
+      - connection
+  /connections/{conn_id}:
+    delete:
+      parameters:
+      - description: Connection identifier
+        in: path
+        name: conn_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/ConnectionModuleResponse'
+      summary: Remove an existing connection record
+      tags:
+      - connection
+    get:
+      parameters:
+      - description: Connection identifier
+        in: path
+        name: conn_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/ConnRecord'
+      summary: Fetch a single connection record
+      tags:
+      - connection
+  /connections/{conn_id}/accept-invitation:
+    post:
+      parameters:
+      - description: Connection identifier
+        in: path
+        name: conn_id
+        required: true
+        type: string
+      - description: Identifier for active mediation record to be used
+        in: query
+        name: mediation_id
+        required: false
+        type: string
+      - description: My URL endpoint
+        in: query
+        name: my_endpoint
+        required: false
+        type: string
+      - description: Label for connection
+        in: query
+        name: my_label
+        required: false
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/ConnRecord'
+      summary: Accept a stored connection invitation
+      tags:
+      - connection
+  /connections/{conn_id}/accept-request:
+    post:
+      parameters:
+      - description: Connection identifier
+        in: path
+        name: conn_id
+        required: true
+        type: string
+      - description: My URL endpoint
+        in: query
+        name: my_endpoint
+        required: false
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/ConnRecord'
+      summary: Accept a stored connection request
+      tags:
+      - connection
+  /connections/{conn_id}/endpoints:
+    get:
+      parameters:
+      - description: Connection identifier
+        in: path
+        name: conn_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/EndpointsResult'
+      summary: Fetch connection remote endpoint
+      tags:
+      - connection
+  /connections/{conn_id}/establish-inbound/{ref_id}:
+    post:
+      parameters:
+      - description: Connection identifier
+        in: path
+        name: conn_id
+        required: true
+        type: string
+      - description: Inbound connection identifier
+        in: path
+        name: ref_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/ConnectionModuleResponse'
+      summary: Assign another connection as the inbound connection
+      tags:
+      - connection
+  /connections/{conn_id}/metadata:
+    get:
+      parameters:
+      - description: Connection identifier
+        in: path
+        name: conn_id
+        required: true
+        type: string
+      - description: Key to retrieve.
+        in: query
+        name: key
+        required: false
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/ConnectionMetadata'
+      summary: Fetch connection metadata
+      tags:
+      - connection
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/ConnectionMetadataSetRequest'
+      - description: Connection identifier
+        in: path
+        name: conn_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/ConnectionMetadata'
+      summary: Set connection metadata
+      tags:
+      - connection
+  /connections/{conn_id}/send-message:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/SendMessage'
+      - description: Connection identifier
+        in: path
+        name: conn_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/BasicMessageModuleResponse'
+      summary: Send a basic message to a connection
+      tags:
+      - basicmessage
+  /connections/{conn_id}/send-ping:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/PingRequest'
+      - description: Connection identifier
+        in: path
+        name: conn_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/PingRequestResponse'
+      summary: Send a trust ping to a connection
+      tags:
+      - trustping
+  /connections/{conn_id}/start-introduction:
+    post:
+      parameters:
+      - description: Connection identifier
+        in: path
+        name: conn_id
+        required: true
+        type: string
+      - description: Target connection identifier
+        in: query
+        name: target_connection_id
+        required: true
+        type: string
+      - description: Message
+        in: query
+        name: message
+        required: false
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/IntroModuleResponse'
+      summary: Start an introduction between two connections
+      tags:
+      - introduction
+  /credential-definitions:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/CredentialDefinitionSendRequest'
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/CredentialDefinitionSendResults'
+      summary: Sends a credential definition to the ledger
+      tags:
+      - credential-definition
+  /credential-definitions/created:
+    get:
+      parameters:
+      - description: Credential definition id
+        in: query
+        name: cred_def_id
+        required: false
+        type: string
+      - description: Issuer DID
+        in: query
+        name: issuer_did
+        required: false
+        type: string
+      - description: Schema identifier
+        in: query
+        name: schema_id
+        required: false
+        type: string
+      - description: Schema issuer DID
+        in: query
+        name: schema_issuer_did
+        required: false
+        type: string
+      - description: Schema name
+        in: query
+        name: schema_name
+        required: false
+        type: string
+      - description: Schema version
+        in: query
+        name: schema_version
+        required: false
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/CredentialDefinitionsCreatedResults'
+      summary: Search for matching credential definitions that agent originated
+      tags:
+      - credential-definition
+  /credential-definitions/{cred_def_id}:
+    get:
+      parameters:
+      - description: Credential definition identifier
+        in: path
+        name: cred_def_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/CredentialDefinitionGetResults'
+      summary: Gets a credential definition from the ledger
+      tags:
+      - credential-definition
+  /credential/mime-types/{credential_id}:
+    get:
+      parameters:
+      - description: Credential identifier
+        in: path
+        name: credential_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/AttributeMimeTypesResult'
+      summary: Get attribute MIME types from wallet
+      tags:
+      - credentials
+  /credential/revoked/{credential_id}:
+    get:
+      parameters:
+      - description: Credential identifier
+        in: path
+        name: credential_id
+        required: true
+        type: string
+      - description: Earliest epoch of revocation status interval of interest
+        in: query
+        name: from
+        required: false
+        type: string
+      - description: Latest epoch of revocation status interval of interest
+        in: query
+        name: to
+        required: false
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/CredRevokedResult'
+      summary: Query credential revocation status by id
+      tags:
+      - credentials
+  /credential/{credential_id}:
+    delete:
+      parameters:
+      - description: Credential identifier
+        in: path
+        name: credential_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/HolderModuleResponse'
+      summary: Remove a credential from the wallet by id
+      tags:
+      - credentials
+    get:
+      parameters:
+      - description: Credential identifier
+        in: path
+        name: credential_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/CredBrief'
+      summary: Fetch a credential from wallet by id
+      tags:
+      - credentials
+  /credentials:
+    get:
+      parameters:
+      - description: Maximum number to retrieve
+        in: query
+        name: count
+        required: false
+        type: string
+      - description: Start index
+        in: query
+        name: start
+        required: false
+        type: string
+      - description: (JSON) WQL query
+        in: query
+        name: wql
+        required: false
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/CredBriefList'
+      summary: Fetch credentials from wallet
+      tags:
+      - credentials
+  /didexchange/create-request:
+    post:
+      parameters:
+      - description: Public DID to which to request connection
+        in: query
+        name: their_public_did
+        required: true
+        type: string
+      - description: Identifier for active mediation record to be used
+        in: query
+        name: mediation_id
+        required: false
+        type: string
+      - description: My URL endpoint
+        in: query
+        name: my_endpoint
+        required: false
+        type: string
+      - description: Label for connection request
+        in: query
+        name: my_label
+        required: false
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/DIDXRequest'
+      summary: Create request against public DID's implicit invitation
+      tags:
+      - did-exchange
+  /didexchange/receive-request:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/DIDXRequest'
+      - description: Alias for connection
+        in: query
+        name: alias
+        required: false
+        type: string
+      - description: Auto-accept connection (defaults to configuration)
+        in: query
+        name: auto_accept
+        required: false
+        type: boolean
+      - description: Identifier for active mediation record to be used
+        in: query
+        name: mediation_id
+        required: false
+        type: string
+      - description: My URL endpoint
+        in: query
+        name: my_endpoint
+        required: false
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/ConnRecord'
+      summary: Receive request against public DID's implicit invitation
+      tags:
+      - did-exchange
+  /didexchange/{conn_id}/accept-invitation:
+    post:
+      parameters:
+      - description: Connection identifier
+        in: path
+        name: conn_id
+        required: true
+        type: string
+      - description: My URL endpoint
+        in: query
+        name: my_endpoint
+        required: false
+        type: string
+      - description: Label for connection request
+        in: query
+        name: my_label
+        required: false
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/ConnRecord'
+      summary: Accept a stored connection invitation
+      tags:
+      - did-exchange
+  /didexchange/{conn_id}/accept-request:
+    post:
+      parameters:
+      - description: Connection identifier
+        in: path
+        name: conn_id
+        required: true
+        type: string
+      - description: Identifier for active mediation record to be used
+        in: query
+        name: mediation_id
+        required: false
+        type: string
+      - description: My URL endpoint
+        in: query
+        name: my_endpoint
+        required: false
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/ConnRecord'
+      summary: Accept a stored connection request
+      tags:
+      - did-exchange
+  /features:
+    get:
+      parameters:
+      - description: Query
+        in: query
+        name: query
+        required: false
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/QueryResult'
+      summary: Query supported features
+      tags:
+      - server
+  /issue-credential-2.0/create:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/V20CredCreate'
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/V20CredExRecord'
+      summary: Send holder a credential, automating entire flow
+      tags:
+      - issue-credential v2.0
+  /issue-credential-2.0/records:
+    get:
+      parameters:
+      - description: Connection identifier
+        format: uuid
+        in: query
+        name: connection_id
+        required: false
+        type: string
+      - description: Role assigned in credential exchange
+        enum:
+        - issuer
+        - holder
+        in: query
+        name: role
+        required: false
+        type: string
+      - description: Credential exchange state
+        enum:
+        - proposal-sent
+        - proposal-received
+        - offer-sent
+        - offer-received
+        - request-sent
+        - request-received
+        - credential-issued
+        - credential-received
+        - done
+        in: query
+        name: state
+        required: false
+        type: string
+      - description: Thread identifier
+        format: uuid
+        in: query
+        name: thread_id
+        required: false
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/V20CredExRecordListResult'
+      summary: Fetch all credential exchange records
+      tags:
+      - issue-credential v2.0
+  /issue-credential-2.0/records/{cred_ex_id}:
+    delete:
+      parameters:
+      - description: Credential exchange identifier
+        in: path
+        name: cred_ex_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/V20IssueCredentialModuleResponse'
+      summary: Remove an existing credential exchange record
+      tags:
+      - issue-credential v2.0
+    get:
+      parameters:
+      - description: Credential exchange identifier
+        in: path
+        name: cred_ex_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/V20CredExRecordDetail'
+      summary: Fetch a single credential exchange record
+      tags:
+      - issue-credential v2.0
+  /issue-credential-2.0/records/{cred_ex_id}/issue:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/V20CredIssueRequest'
+      - description: Credential exchange identifier
+        in: path
+        name: cred_ex_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/V20CredExRecordDetail'
+      summary: Send holder a credential
+      tags:
+      - issue-credential v2.0
+  /issue-credential-2.0/records/{cred_ex_id}/problem-report:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/V20CredIssueProblemReportRequest'
+      - description: Credential exchange identifier
+        in: path
+        name: cred_ex_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/V20IssueCredentialModuleResponse'
+      summary: Send a problem report for credential exchange
+      tags:
+      - issue-credential v2.0
+  /issue-credential-2.0/records/{cred_ex_id}/send-offer:
+    post:
+      parameters:
+      - description: Credential exchange identifier
+        in: path
+        name: cred_ex_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/V20CredExRecord'
+      summary: Send holder a credential offer in reference to a proposal with preview
+      tags:
+      - issue-credential v2.0
+  /issue-credential-2.0/records/{cred_ex_id}/send-request:
+    post:
+      parameters:
+      - description: Credential exchange identifier
+        in: path
+        name: cred_ex_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/V20CredExRecord'
+      summary: Send issuer a credential request
+      tags:
+      - issue-credential v2.0
+  /issue-credential-2.0/records/{cred_ex_id}/store:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/V20CredStoreRequest'
+      - description: Credential exchange identifier
+        in: path
+        name: cred_ex_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/V20CredExRecordDetail'
+      summary: Store a received credential
+      tags:
+      - issue-credential v2.0
+  /issue-credential-2.0/send:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/V20CredProposalRequestPreviewMand'
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/V20CredExRecord'
+      summary: Send holder a credential, automating entire flow
+      tags:
+      - issue-credential v2.0
+  /issue-credential-2.0/send-offer:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/V20CredOfferRequest'
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/V20CredExRecord'
+      summary: Send holder a credential offer, independent of any proposal
+      tags:
+      - issue-credential v2.0
+  /issue-credential-2.0/send-proposal:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/V20CredProposalRequestPreviewOpt'
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/V20CredExRecord'
+      summary: Send issuer a credential proposal
+      tags:
+      - issue-credential v2.0
+  /issue-credential/create:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/V10CredentialCreate'
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/V10CredentialExchange'
+      summary: Send holder a credential, automating entire flow
+      tags:
+      - issue-credential v1.0
+  /issue-credential/records:
+    get:
+      parameters:
+      - description: Connection identifier
+        format: uuid
+        in: query
+        name: connection_id
+        required: false
+        type: string
+      - description: Role assigned in credential exchange
+        enum:
+        - issuer
+        - holder
+        in: query
+        name: role
+        required: false
+        type: string
+      - description: Credential exchange state
+        enum:
+        - proposal_sent
+        - proposal_received
+        - offer_sent
+        - offer_received
+        - request_sent
+        - request_received
+        - credential_issued
+        - credential_received
+        - credential_acked
+        in: query
+        name: state
+        required: false
+        type: string
+      - description: Thread identifier
+        format: uuid
+        in: query
+        name: thread_id
+        required: false
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/V10CredentialExchangeListResult'
+      summary: Fetch all credential exchange records
+      tags:
+      - issue-credential v1.0
+  /issue-credential/records/{cred_ex_id}:
+    delete:
+      parameters:
+      - description: Credential exchange identifier
+        in: path
+        name: cred_ex_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/IssueCredentialModuleResponse'
+      summary: Remove an existing credential exchange record
+      tags:
+      - issue-credential v1.0
+    get:
+      parameters:
+      - description: Credential exchange identifier
+        in: path
+        name: cred_ex_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/V10CredentialExchange'
+      summary: Fetch a single credential exchange record
+      tags:
+      - issue-credential v1.0
+  /issue-credential/records/{cred_ex_id}/issue:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/V10CredentialIssueRequest'
+      - description: Credential exchange identifier
+        in: path
+        name: cred_ex_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/V10CredentialExchange'
+      summary: Send holder a credential
+      tags:
+      - issue-credential v1.0
+  /issue-credential/records/{cred_ex_id}/problem-report:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/V10CredentialProblemReportRequest'
+      - description: Credential exchange identifier
+        in: path
+        name: cred_ex_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/IssueCredentialModuleResponse'
+      summary: Send a problem report for credential exchange
+      tags:
+      - issue-credential v1.0
+  /issue-credential/records/{cred_ex_id}/send-offer:
+    post:
+      parameters:
+      - description: Credential exchange identifier
+        in: path
+        name: cred_ex_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/V10CredentialExchange'
+      summary: Send holder a credential offer in reference to a proposal with preview
+      tags:
+      - issue-credential v1.0
+  /issue-credential/records/{cred_ex_id}/send-request:
+    post:
+      parameters:
+      - description: Credential exchange identifier
+        in: path
+        name: cred_ex_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/V10CredentialExchange'
+      summary: Send issuer a credential request
+      tags:
+      - issue-credential v1.0
+  /issue-credential/records/{cred_ex_id}/store:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/V10CredentialStoreRequest'
+      - description: Credential exchange identifier
+        in: path
+        name: cred_ex_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/V10CredentialExchange'
+      summary: Store a received credential
+      tags:
+      - issue-credential v1.0
+  /issue-credential/send:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/V10CredentialProposalRequestMand'
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/V10CredentialExchange'
+      summary: Send holder a credential, automating entire flow
+      tags:
+      - issue-credential v1.0
+  /issue-credential/send-offer:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/V10CredentialOfferRequest'
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/V10CredentialExchange'
+      summary: Send holder a credential offer, independent of any proposal
+      tags:
+      - issue-credential v1.0
+  /issue-credential/send-proposal:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/V10CredentialProposalRequestOpt'
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/V10CredentialExchange'
+      summary: Send issuer a credential proposal
+      tags:
+      - issue-credential v1.0
+  /ledger/did-endpoint:
+    get:
+      parameters:
+      - description: DID of interest
+        in: query
+        name: did
+        required: true
+        type: string
+      - description: Endpoint type of interest (default 'Endpoint')
+        enum:
+        - Endpoint
+        - Profile
+        - LinkedDomains
+        in: query
+        name: endpoint_type
+        required: false
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/LedgerModulesResult'
+      summary: Get the endpoint for a DID from the ledger.
+      tags:
+      - ledger
+  /ledger/did-verkey:
+    get:
+      parameters:
+      - description: DID of interest
+        in: query
+        name: did
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/LedgerModulesResult'
+      summary: Get the verkey for a DID from the ledger.
+      tags:
+      - ledger
+  /ledger/get-nym-role:
+    get:
+      parameters:
+      - description: DID of interest
+        in: query
+        name: did
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/LedgerModulesResult'
+      summary: Get the role from the NYM registration of a public DID.
+      tags:
+      - ledger
+  /ledger/register-nym:
+    post:
+      parameters:
+      - description: DID to register
+        in: query
+        name: did
+        required: true
+        type: string
+      - description: Verification key
+        in: query
+        name: verkey
+        required: true
+        type: string
+      - description: Alias
+        in: query
+        name: alias
+        required: false
+        type: string
+      - description: Role
+        enum:
+        - STEWARD
+        - TRUSTEE
+        - ENDORSER
+        - NETWORK_MONITOR
+        - reset
+        in: query
+        name: role
+        required: false
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/LedgerModulesResult'
+      summary: Send a NYM registration to the ledger.
+      tags:
+      - ledger
+  /ledger/rotate-public-did-keypair:
+    patch:
+      parameters: []
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/LedgerModulesResult'
+      summary: Rotate key pair for public DID.
+      tags:
+      - ledger
+  /ledger/taa:
+    get:
+      parameters: []
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/TAAResult'
+      summary: Fetch the current transaction author agreement, if any
+      tags:
+      - ledger
+  /ledger/taa/accept:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/TAAAccept'
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/LedgerModulesResult'
+      summary: Accept the transaction author agreement
+      tags:
+      - ledger
+  /mediation/default-mediator:
+    delete:
+      parameters: []
+      produces:
+      - application/json
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/MediationRecord'
+      summary: Clear default mediator
+      tags:
+      - mediation
+    get:
+      parameters: []
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/MediationRecord'
+      summary: Get default mediator
+      tags:
+      - mediation
+  /mediation/keylists:
+    get:
+      parameters:
+      - description: Connection identifier (optional)
+        format: uuid
+        in: query
+        name: conn_id
+        required: false
+        type: string
+      - default: server
+        description: Filer on role, 'client' for keys         mediated by other agents,
+          'server' for keys         mediated by this agent
+        enum:
+        - client
+        - server
+        in: query
+        name: role
+        required: false
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/Keylist'
+      summary: Retrieve keylists by connection or role
+      tags:
+      - mediation
+  /mediation/keylists/{mediation_id}/send-keylist-query:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/KeylistQueryFilterRequest'
+      - description: Mediation record identifier
+        format: uuid
+        in: path
+        name: mediation_id
+        required: true
+        type: string
+      - default: -1
+        description: limit number of results
+        format: int32
+        in: query
+        name: paginate_limit
+        required: false
+        type: integer
+      - default: 0
+        description: offset to use in pagination
+        format: int32
+        in: query
+        name: paginate_offset
+        required: false
+        type: integer
+      produces:
+      - application/json
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/KeylistQuery'
+      summary: Send keylist query to mediator
+      tags:
+      - mediation
+  /mediation/keylists/{mediation_id}/send-keylist-update:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/KeylistUpdateRequest'
+      - description: Mediation record identifier
+        format: uuid
+        in: path
+        name: mediation_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/KeylistUpdate'
+      summary: Send keylist update to mediator
+      tags:
+      - mediation
+  /mediation/request/{conn_id}:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/MediationCreateRequest'
+      - description: Connection identifier
+        in: path
+        name: conn_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/MediationRecord'
+      summary: Request mediation from connection
+      tags:
+      - mediation
+  /mediation/requests:
+    get:
+      parameters:
+      - description: Connection identifier (optional)
+        format: uuid
+        in: query
+        name: conn_id
+        required: false
+        type: string
+      - collectionFormat: multi
+        description: List of mediator rules for recipient
+        in: query
+        items:
+          description: Indicate terms that the mediator requires the recipient to
+            agree to
+          type: string
+        name: mediator_terms
+        required: false
+        type: array
+      - collectionFormat: multi
+        description: List of recipient rules for mediation
+        in: query
+        items:
+          description: Indicate terms that the recipient requires the mediator to
+            agree to
+          type: string
+        name: recipient_terms
+        required: false
+        type: array
+      - description: Mediation state (optional)
+        enum:
+        - request
+        - granted
+        - denied
+        in: query
+        name: state
+        required: false
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/MediationList'
+      summary: Query mediation requests, returns list of all mediation records
+      tags:
+      - mediation
+  /mediation/requests/{mediation_id}:
+    delete:
+      parameters:
+      - description: Mediation record identifier
+        format: uuid
+        in: path
+        name: mediation_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/MediationRecord'
+      summary: Delete mediation request by ID
+      tags:
+      - mediation
+    get:
+      parameters:
+      - description: Mediation record identifier
+        format: uuid
+        in: path
+        name: mediation_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/MediationRecord'
+      summary: Retrieve mediation request record
+      tags:
+      - mediation
+  /mediation/requests/{mediation_id}/deny:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/AdminMediationDeny'
+      - description: Mediation record identifier
+        format: uuid
+        in: path
+        name: mediation_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/MediationDeny'
+      summary: Deny a stored mediation request
+      tags:
+      - mediation
+  /mediation/requests/{mediation_id}/grant:
+    post:
+      parameters:
+      - description: Mediation record identifier
+        format: uuid
+        in: path
+        name: mediation_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/MediationGrant'
+      summary: Grant received mediation
+      tags:
+      - mediation
+  /mediation/{mediation_id}/default-mediator:
+    put:
+      parameters:
+      - description: Mediation record identifier
+        format: uuid
+        in: path
+        name: mediation_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/MediationRecord'
+      summary: Set default mediator
+      tags:
+      - mediation
+  /out-of-band/create-invitation:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/InvitationCreateRequest'
+      - description: Auto-accept connection (defaults to configuration)
+        in: query
+        name: auto_accept
+        required: false
+        type: boolean
+      - description: Create invitation for multiple use (default false)
+        in: query
+        name: multi_use
+        required: false
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/InvitationRecord'
+      summary: Create a new connection invitation
+      tags:
+      - out-of-band
+  /out-of-band/receive-invitation:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/InvitationReceiveRequest'
+      - description: Alias for connection
+        in: query
+        name: alias
+        required: false
+        type: string
+      - description: Auto-accept connection (defaults to configuration)
+        in: query
+        name: auto_accept
+        required: false
+        type: boolean
+      - description: Identifier for active mediation record to be used
+        in: query
+        name: mediation_id
+        required: false
+        type: string
+      - description: Use an existing connection, if possible
+        in: query
+        name: use_existing_connection
+        required: false
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/ConnRecord'
+      summary: Receive a new connection invitation
+      tags:
+      - out-of-band
+  /plugins:
+    get:
+      parameters: []
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/AdminModules'
+      summary: Fetch the list of loaded plugins
+      tags:
+      - server
+  /present-proof/create-request:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/V10PresentationCreateRequestRequest'
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/V10PresentationExchange'
+      summary: "\n    Creates a presentation request not bound to any proposal or\
+        \ existing connection\n    "
+      tags:
+      - present-proof
+  /present-proof/records:
+    get:
+      parameters:
+      - description: Connection identifier
+        format: uuid
+        in: query
+        name: connection_id
+        required: false
+        type: string
+      - description: Role assigned in presentation exchange
+        enum:
+        - prover
+        - verifier
+        in: query
+        name: role
+        required: false
+        type: string
+      - description: Presentation exchange state
+        enum:
+        - proposal_sent
+        - proposal_received
+        - request_sent
+        - request_received
+        - presentation_sent
+        - presentation_received
+        - verified
+        - presentation_acked
+        in: query
+        name: state
+        required: false
+        type: string
+      - description: Thread identifier
+        format: uuid
+        in: query
+        name: thread_id
+        required: false
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/V10PresentationExchangeList'
+      summary: Fetch all present-proof exchange records
+      tags:
+      - present-proof
+  /present-proof/records/{pres_ex_id}:
+    delete:
+      parameters:
+      - description: Presentation exchange identifier
+        in: path
+        name: pres_ex_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/PresentProofModuleResponse'
+      summary: Remove an existing presentation exchange record
+      tags:
+      - present-proof
+    get:
+      parameters:
+      - description: Presentation exchange identifier
+        in: path
+        name: pres_ex_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/V10PresentationExchange'
+      summary: Fetch a single presentation exchange record
+      tags:
+      - present-proof
+  /present-proof/records/{pres_ex_id}/credentials:
+    get:
+      parameters:
+      - description: Presentation exchange identifier
+        in: path
+        name: pres_ex_id
+        required: true
+        type: string
+      - description: Maximum number to retrieve
+        in: query
+        name: count
+        required: false
+        type: string
+      - description: (JSON) object mapping referents to extra WQL queries
+        in: query
+        name: extra_query
+        required: false
+        type: string
+      - description: Proof request referents of interest, comma-separated
+        in: query
+        name: referent
+        required: false
+        type: string
+      - description: Start index
+        in: query
+        name: start
+        required: false
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            items:
+              $ref: '#/definitions/IndyCredPrecis'
+            type: array
+      summary: Fetch credentials for a presentation request from wallet
+      tags:
+      - present-proof
+  /present-proof/records/{pres_ex_id}/problem-report:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/V10PresentationProblemReportRequest'
+      - description: Presentation exchange identifier
+        in: path
+        name: pres_ex_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/PresentProofModuleResponse'
+      summary: Send a problem report for presentation exchange
+      tags:
+      - present-proof
+  /present-proof/records/{pres_ex_id}/send-presentation:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/V10PresentationRequest'
+      - description: Presentation exchange identifier
+        in: path
+        name: pres_ex_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/V10PresentationExchange'
+      summary: Sends a proof presentation
+      tags:
+      - present-proof
+  /present-proof/records/{pres_ex_id}/send-request:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/AdminAPIMessageTracing'
+      - description: Presentation exchange identifier
+        in: path
+        name: pres_ex_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/V10PresentationExchange'
+      summary: Sends a presentation request in reference to a proposal
+      tags:
+      - present-proof
+  /present-proof/records/{pres_ex_id}/verify-presentation:
+    post:
+      parameters:
+      - description: Presentation exchange identifier
+        in: path
+        name: pres_ex_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/V10PresentationExchange'
+      summary: Verify a received presentation
+      tags:
+      - present-proof
+  /present-proof/send-proposal:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/V10PresentationProposalRequest'
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/V10PresentationExchange'
+      summary: Sends a presentation proposal
+      tags:
+      - present-proof
+  /present-proof/send-request:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/V10PresentationSendRequestRequest'
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/V10PresentationExchange'
+      summary: Sends a free presentation request not bound to any proposal
+      tags:
+      - present-proof
+  /revocation/active-registry/{cred_def_id}:
+    get:
+      parameters:
+      - description: Credential definition identifier
+        in: path
+        name: cred_def_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/RevRegResult'
+      summary: Get current active revocation registry by credential definition id
+      tags:
+      - revocation
+  /revocation/clear-pending-revocations:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/ClearPendingRevocationsRequest'
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/PublishRevocations'
+      summary: Clear pending revocations
+      tags:
+      - revocation
+  /revocation/create-registry:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/RevRegCreateRequest'
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/RevRegResult'
+      summary: Creates a new revocation registry
+      tags:
+      - revocation
+  /revocation/credential-record:
+    get:
+      parameters:
+      - description: Credential exchange identifier
+        in: query
+        name: cred_ex_id
+        required: false
+        type: string
+      - description: Credential revocation identifier
+        in: query
+        name: cred_rev_id
+        required: false
+        type: string
+      - description: Revocation registry identifier
+        in: query
+        name: rev_reg_id
+        required: false
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/CredRevRecordResult'
+      summary: Get credential revocation status
+      tags:
+      - revocation
+  /revocation/publish-revocations:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/PublishRevocations'
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/PublishRevocations'
+      summary: Publish pending revocations to ledger
+      tags:
+      - revocation
+  /revocation/registries/created:
+    get:
+      parameters:
+      - description: Credential definition identifier
+        in: query
+        name: cred_def_id
+        required: false
+        type: string
+      - description: Revocation registry state
+        enum:
+        - init
+        - generated
+        - posted
+        - active
+        - full
+        in: query
+        name: state
+        required: false
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/RevRegsCreated'
+      summary: Search for matching revocation registries that current agent created
+      tags:
+      - revocation
+  /revocation/registry/{rev_reg_id}:
+    get:
+      parameters:
+      - description: Revocation Registry identifier
+        in: path
+        name: rev_reg_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/RevRegResult'
+      summary: Get revocation registry by revocation registry id
+      tags:
+      - revocation
+    patch:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/RevRegUpdateTailsFileUri'
+      - description: Revocation Registry identifier
+        in: path
+        name: rev_reg_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/RevRegResult'
+      summary: Update revocation registry with new public URI to its tails file
+      tags:
+      - revocation
+  /revocation/registry/{rev_reg_id}/definition:
+    post:
+      parameters:
+      - description: Revocation Registry identifier
+        in: path
+        name: rev_reg_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/RevRegResult'
+      summary: Send revocation registry definition to ledger
+      tags:
+      - revocation
+  /revocation/registry/{rev_reg_id}/entry:
+    post:
+      parameters:
+      - description: Revocation Registry identifier
+        in: path
+        name: rev_reg_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/RevRegResult'
+      summary: Send revocation registry entry to ledger
+      tags:
+      - revocation
+  /revocation/registry/{rev_reg_id}/issued:
+    get:
+      parameters:
+      - description: Revocation Registry identifier
+        in: path
+        name: rev_reg_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/RevRegIssuedResult'
+      summary: Get number of credentials issued against revocation registry
+      tags:
+      - revocation
+  /revocation/registry/{rev_reg_id}/set-state:
+    patch:
+      parameters:
+      - description: Revocation Registry identifier
+        in: path
+        name: rev_reg_id
+        required: true
+        type: string
+      - description: Revocation registry state to set
+        enum:
+        - init
+        - generated
+        - posted
+        - active
+        - full
+        in: query
+        name: state
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/RevRegResult'
+      summary: Set revocation registry state manually
+      tags:
+      - revocation
+  /revocation/registry/{rev_reg_id}/tails-file:
+    get:
+      parameters:
+      - description: Revocation Registry identifier
+        in: path
+        name: rev_reg_id
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        '200':
+          description: tails file
+          schema:
+            format: binary
+            type: string
+      summary: Download tails file
+      tags:
+      - revocation
+    put:
+      parameters:
+      - description: Revocation Registry identifier
+        in: path
+        name: rev_reg_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/RevocationModuleResponse'
+      summary: Upload local tails file to server
+      tags:
+      - revocation
+  /revocation/revoke:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/RevokeRequest'
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/RevocationModuleResponse'
+      summary: Revoke an issued credential
+      tags:
+      - revocation
+  /schemas:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/SchemaSendRequest'
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/SchemaSendResults'
+      summary: Sends a schema to the ledger
+      tags:
+      - schema
+  /schemas/created:
+    get:
+      parameters:
+      - description: Schema identifier
+        in: query
+        name: schema_id
+        required: false
+        type: string
+      - description: Schema issuer DID
+        in: query
+        name: schema_issuer_did
+        required: false
+        type: string
+      - description: Schema name
+        in: query
+        name: schema_name
+        required: false
+        type: string
+      - description: Schema version
+        in: query
+        name: schema_version
+        required: false
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/SchemasCreatedResults'
+      summary: Search for matching schema that agent originated
+      tags:
+      - schema
+  /schemas/{schema_id}:
+    get:
+      parameters:
+      - description: Schema identifier
+        in: path
+        name: schema_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/SchemaGetResults'
+      summary: Gets a schema from the ledger
+      tags:
+      - schema
+  /shutdown:
+    get:
+      parameters: []
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/AdminShutdown'
+      summary: Shut down server
+      tags:
+      - server
+  /status:
+    get:
+      parameters: []
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/AdminStatus'
+      summary: Fetch the server status
+      tags:
+      - server
+  /status/live:
+    get:
+      parameters: []
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/AdminStatusLiveliness'
+      summary: Liveliness check
+      tags:
+      - server
+  /status/ready:
+    get:
+      parameters: []
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/AdminStatusReadiness'
+      summary: Readiness check
+      tags:
+      - server
+  /status/reset:
+    post:
+      parameters: []
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/AdminStatus'
+      summary: Reset statistics
+      tags:
+      - server
+  /wallet/did:
+    get:
+      parameters:
+      - description: DID of interest
+        in: query
+        name: did
+        required: false
+        type: string
+      - description: Whether DID is current public DID, posted to ledger but current
+          public DID, or local to the wallet
+        enum:
+        - public
+        - posted
+        - wallet_only
+        in: query
+        name: posture
+        required: false
+        type: string
+      - description: Verification key of interest
+        in: query
+        name: verkey
+        required: false
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/DIDList'
+      summary: List wallet DIDs
+      tags:
+      - wallet
+  /wallet/did/create:
+    post:
+      parameters: []
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/DIDResult'
+      summary: Create a local DID
+      tags:
+      - wallet
+  /wallet/did/local/rotate-keypair:
+    patch:
+      parameters:
+      - description: DID of interest
+        in: query
+        name: did
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/WalletModuleResponse'
+      summary: Rotate keypair for a DID not posted to the ledger
+      tags:
+      - wallet
+  /wallet/did/public:
+    get:
+      parameters: []
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/DIDResult'
+      summary: Fetch the current public DID
+      tags:
+      - wallet
+    post:
+      parameters:
+      - description: DID of interest
+        in: query
+        name: did
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/DIDResult'
+      summary: Assign the current public DID
+      tags:
+      - wallet
+  /wallet/get-did-endpoint:
+    get:
+      parameters:
+      - description: DID of interest
+        in: query
+        name: did
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/DIDEndpoint'
+      summary: Query DID endpoint in wallet
+      tags:
+      - wallet
+  /wallet/set-did-endpoint:
+    post:
+      parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/DIDEndpointWithType'
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/WalletModuleResponse'
+      summary: Update endpoint in wallet and on ledger if posted to it
+      tags:
+      - wallet
+swagger: '2.0'
+tags:
+- description: Menu interaction over connection
+  externalDocs: {}
+  name: action-menu
+- description: Simple messaging
+  externalDocs:
+    description: Specification
+    url: https://github.com/hyperledger/aries-rfcs/tree/527849ec3aa2a8fd47a7bb6c57f918ff8bcb5e8c/features/0095-basic-message
+  name: basicmessage
+- description: Connection management
+  externalDocs:
+    description: Specification
+    url: https://github.com/hyperledger/aries-rfcs/tree/9b0aaa39df7e8bd434126c4b33c097aae78d65bf/features/0160-connection-protocol
+  name: connection
+- description: Credential definition operations
+  externalDocs:
+    description: Specification
+    url: https://github.com/hyperledger/indy-node/blob/master/design/anoncreds.md#cred_def
+  name: credential-definition
+- description: Holder credential management
+  externalDocs:
+    description: Overview
+    url: https://w3c.github.io/vc-data-model/#credentials
+  name: credentials
+- description: Connection management via DID exchange
+  externalDocs:
+    description: Specification
+    url: https://github.com/hyperledger/aries-rfcs/tree/25464a5c8f8a17b14edaa4310393df6094ace7b0/features/0023-did-exchange
+  name: did-exchange
+- description: Introduction of known parties
+  externalDocs: {}
+  name: introduction
+- description: Credential issue v1.0
+  externalDocs:
+    description: Specification
+    url: https://github.com/hyperledger/aries-rfcs/tree/bb42a6c35e0d5543718fb36dd099551ab192f7b0/features/0036-issue-credential
+  name: issue-credential v1.0
+- description: Credential issue v2.0
+  externalDocs:
+    description: Specification
+    url: https://github.com/hyperledger/aries-rfcs/tree/6509b84abaf5760a8ba1744c8078d513f28456db/features/0453-issue-credential-v2
+  name: issue-credential v2.0
+- description: Interaction with ledger
+  externalDocs:
+    description: Overview
+    url: https://hyperledger-indy.readthedocs.io/projects/plenum/en/latest/storage.html#ledger
+  name: ledger
+- description: Mediation management
+  externalDocs:
+    description: Specification
+    url: https://github.com/hyperledger/aries-rfcs/tree/fa8dc4ea1e667eb07db8f9ffeaf074a4455697c0/features/0211-route-coordination
+  name: mediation
+- description: Out-of-band connections
+  externalDocs:
+    description: Design
+    url: https://github.com/hyperledger/aries-rfcs/tree/2da7fc4ee043effa3a9960150e7ba8c9a4628b68/features/0434-outofband
+  name: out-of-band
+- description: Proof presentation
+  externalDocs:
+    description: Specification
+    url: https://github.com/hyperledger/aries-rfcs/tree/4fae574c03f9f1013db30bf2c0c676b1122f7149/features/0037-present-proof
+  name: present-proof
+- description: Revocation registry management
+  externalDocs:
+    description: Overview
+    url: https://github.com/hyperledger/indy-hipe/tree/master/text/0011-cred-revocation
+  name: revocation
+- description: Schema operations
+  externalDocs:
+    description: Specification
+    url: https://github.com/hyperledger/indy-node/blob/master/design/anoncreds.md#schema
+  name: schema
+- description: Feature discovery
+  externalDocs:
+    description: Specification
+    url: https://github.com/hyperledger/aries-rfcs/tree/9b7ab9814f2e7d1108f74aca6f3d2e5d62899473/features/0031-discover-features
+  name: server
+- description: Trust-ping over connection
+  externalDocs:
+    description: Specification
+    url: https://github.com/hyperledger/aries-rfcs/tree/527849ec3aa2a8fd47a7bb6c57f918ff8bcb5e8c/features/0048-trust-ping
+  name: trustping
+- description: DID and tag policy management
+  externalDocs:
+    description: Design
+    url: https://github.com/hyperledger/indy-sdk/tree/master/docs/design/003-wallet-storage
+  name: wallet
+

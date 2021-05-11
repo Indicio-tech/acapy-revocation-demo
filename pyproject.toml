@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "acapy-revocation-demo"
+version = "0.1.0"
+description = "Demonstrate Indy AnonCreds revocation using ACA-Py"
+authors = ["Daniel Bluhm <dbluhm@pm.me>"]
+license = "Apache-2.0"
+
+[tool.poetry.dependencies]
+python = "^3.6.9"
+acapy-client = { path = "acapy-client", develop = true }
+
+[tool.poetry.dev-dependencies]
+black = "^21.5b1"
+flake8 = "^3.9.2"
+pre-commit = "^2.12.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

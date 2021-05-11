@@ -1,0 +1,24 @@
+inbound-transport:
+    - [http, 0.0.0.0, 3000]
+outbound-transport: http
+endpoint:
+    - http://localhost:3000
+no-ledger: true
+admin: [0.0.0.0, 3001]
+admin-insecure-mode: true
+debug-connections: true
+auto-accept-invites: true
+auto-accept-requests: true
+auto-ping-connection: true
+preserve-exchange-records: true
+auto-store-credential: true
+auto-respond-credential-proposal: true
+auto-respond-credential-offer: true
+auto-respond-credential-request: true
+auto-respond-presentation-proposal: true
+auto-respond-presentation-request: true
+auto-verify-presentation: true
+wallet-type: indy
+wallet-name: default
+wallet-key: insecure
+auto-provision: true
