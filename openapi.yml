@@ -4839,6 +4839,7 @@ components:
           type: string
     TAAAcceptance:
       type: object
+      nullable: true
       properties:
         mechanism:
           type: string
@@ -4850,6 +4851,11 @@ components:
           example: 1620739248
     TAAInfo:
       type: object
+      required:
+        - aml_record
+        - taa_accepted
+        - taa_record
+        - taa_required
       properties:
         aml_record:
           $ref: '#/components/schemas/AMLRecord'
@@ -4861,6 +4867,10 @@ components:
           type: boolean
     TAARecord:
       type: object
+      required:
+        - digest
+        - text
+        - version
       properties:
         digest:
           type: string
@@ -4870,6 +4880,8 @@ components:
           type: string
     TAAResult:
       type: object
+      required:
+        - result
       properties:
         result:
           $ref: '#/components/schemas/TAAInfo'

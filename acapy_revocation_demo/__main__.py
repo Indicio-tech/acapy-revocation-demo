@@ -9,9 +9,11 @@ from acapy_client import Client
 from acapy_client.api.connection import create_invitation, receive_invitation
 from acapy_client.api.wallet import create_did, set_public_did
 from acapy_client.api.schema import publish_schema
+from acapy_client.api.ledger import accept_taa, fetch_taa
 from acapy_client.models import (
     CreateInvitationRequest,
     ReceiveInvitationRequest,
+    TAAAccept,
 )
 
 
@@ -63,6 +65,19 @@ def main():
         print("Failed to publish DID:", response.text)
         return
     print("DID Published")
+
+    result = describe(
+        "Retrieve Transaction Author Agreement from the ledger", fetch_taa
+    )(client=issuer).result
+
+    result = describe("Sign transaction author agreement", accept_taa)(
+        client=issuer,
+        json_body=TAAAccept(
+            mechanism="on_file",
+            text=result.taa_record.text,
+            version=result.taa_record.version,
+        ),
+    )
 
     result = describe("Set DID as public DID for issuer", set_public_did)(
         client=issuer, did=did_info.did
