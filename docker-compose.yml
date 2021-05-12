@@ -7,7 +7,13 @@ services:
       - 3001:3001
     volumes:
       - ./configs:/home/indy/configs:z
-    command: start --arg-file ./configs/holder.yml -e http://holder:3000
+    command: >
+      start --arg-file ./configs/holder.yml
+        -e http://holder:3000
+        --webhook-url http://webhook-listener:8080
+    depends_on:
+      - tails
+      - webhook-listener
 
   issuer:
     image: bcgovimages/aries-cloudagent:py36-1.16-0_0.6.0
@@ -20,6 +26,10 @@ services:
       start --arg-file ./configs/issuer.yml
         -e http://issuer:3000
         --tails-server-base-url http://tails:6543
+        --webhook-url http://webhook-listener:8080
+    depends_on:
+      - tails
+      - webhook-listener
 
   tails:
     image: indy-tails-server
@@ -37,6 +47,11 @@ services:
         --storage-path /tmp/tails-files
         --log-level INFO
 
+  webhook-listener:
+    image: mendhak/http-https-echo:18
+    environment:
+      - HTTP_PORT=8080
+
   demo:
     build:
       context: .
@@ -52,4 +67,3 @@ services:
     depends_on:
       - holder
       - issuer
-      - tails

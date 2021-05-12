@@ -26,3 +26,4 @@ wallet-type: indy
 wallet-name: default
 wallet-key: insecure
 auto-provision: true
+log-level: debug
