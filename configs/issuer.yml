@@ -1,4 +1,4 @@
-label: holder
+label: issuer
 inbound-transport:
     - [http, 0.0.0.0, 3000]
 outbound-transport: http
