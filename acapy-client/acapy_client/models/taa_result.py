@@ -1,9 +1,8 @@
-from typing import Any, Dict, List, Type, TypeVar, Union
+from typing import Any, Dict, List, Type, TypeVar
 
 import attr
 
 from ..models.taa_info import TAAInfo
-from ..types import UNSET, Unset
 
 T = TypeVar("T", bound="TAAResult")
 
@@ -12,29 +11,26 @@ T = TypeVar("T", bound="TAAResult")
 class TAAResult:
     """ """
 
-    result: Union[Unset, TAAInfo] = UNSET
+    result: TAAInfo
     additional_properties: Dict[str, Any] = attr.ib(init=False, factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
-        result: Union[Unset, Dict[str, Any]] = UNSET
-        if not isinstance(self.result, Unset):
-            result = self.result.to_dict()
+        result = self.result.to_dict()
 
         field_dict: Dict[str, Any] = {}
         field_dict.update(self.additional_properties)
-        field_dict.update({})
-        if result is not UNSET:
-            field_dict["result"] = result
+        field_dict.update(
+            {
+                "result": result,
+            }
+        )
 
         return field_dict
 
     @classmethod
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
         d = src_dict.copy()
-        result: Union[Unset, TAAInfo] = UNSET
-        _result = d.pop("result", UNSET)
-        if not isinstance(_result, Unset):
-            result = TAAInfo.from_dict(_result)
+        result = TAAInfo.from_dict(d.pop("result"))
 
         taa_result = cls(
             result=result,

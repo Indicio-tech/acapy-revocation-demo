@@ -1,8 +1,6 @@
-from typing import Any, Dict, List, Type, TypeVar, Union
+from typing import Any, Dict, List, Type, TypeVar
 
 import attr
-
-from ..types import UNSET, Unset
 
 T = TypeVar("T", bound="TAARecord")
 
@@ -11,9 +9,9 @@ T = TypeVar("T", bound="TAARecord")
 class TAARecord:
     """ """
 
-    digest: Union[Unset, str] = UNSET
-    text: Union[Unset, str] = UNSET
-    version: Union[Unset, str] = UNSET
+    digest: str
+    text: str
+    version: str
     additional_properties: Dict[str, Any] = attr.ib(init=False, factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
@@ -23,24 +21,24 @@ class TAARecord:
 
         field_dict: Dict[str, Any] = {}
         field_dict.update(self.additional_properties)
-        field_dict.update({})
-        if digest is not UNSET:
-            field_dict["digest"] = digest
-        if text is not UNSET:
-            field_dict["text"] = text
-        if version is not UNSET:
-            field_dict["version"] = version
+        field_dict.update(
+            {
+                "digest": digest,
+                "text": text,
+                "version": version,
+            }
+        )
 
         return field_dict
 
     @classmethod
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
         d = src_dict.copy()
-        digest = d.pop("digest", UNSET)
+        digest = d.pop("digest")
 
-        text = d.pop("text", UNSET)
+        text = d.pop("text")
 
-        version = d.pop("version", UNSET)
+        version = d.pop("version")
 
         taa_record = cls(
             digest=digest,
