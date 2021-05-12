@@ -39,6 +39,7 @@ def main():
     holder = Client(base_url=HOLDER_URL)
     issuer = Client(base_url=ISSUER_URL)
 
+    # Establish Connection {{{
     invite = describe("Create new invitation in holder", create_invitation)(
         client=holder, json_body=CreateInvitationRequest(), auto_accept="true"
     )
@@ -47,7 +48,9 @@ def main():
         client=issuer,
         json_body=ReceiveInvitationRequest.from_dict(invite.invitation.to_dict()),
     )
+    # }}}
 
+    # Prepare for writing to ledger {{{
     did_info = describe(
         "Create new DID for publishing to ledger in issuer", create_did
     )(client=issuer).result
@@ -83,7 +86,9 @@ def main():
         client=issuer, did=did_info.did
     ).result
     print(result.posture)
+    # }}}
 
+    # Prepare Credential ledger artifacts {{{
     result = describe("Publish schema to the ledger", publish_schema)(
         client=issuer,
         json_body=SchemaSendRequest(
@@ -93,6 +98,7 @@ def main():
         ),
     )
     print(result)
+    # }}}
 
 
 if __name__ == "__main__":

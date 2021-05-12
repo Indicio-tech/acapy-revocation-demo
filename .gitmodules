@@ -1,0 +1,3 @@
+[submodule "indy-tails-server"]
+	path = indy-tails-server
+	url = git@github.com:bcgov/indy-tails-server.git
