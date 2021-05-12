@@ -636,6 +636,7 @@ paths:
                 $ref: '#/components/schemas/IntroModuleResponse'
   /credential-definitions:
     post:
+      operationId: publish_cred_def
       tags:
       - credential-definition
       summary: Sends a credential definition to the ledger
@@ -1510,6 +1511,7 @@ paths:
       x-codegen-request-body-name: body
   /issue-credential/send:
     post:
+      operationId: issue_credential_automated
       tags:
       - issue-credential v1.0
       summary: Send holder a credential, automating entire flow
@@ -2380,6 +2382,7 @@ paths:
       x-codegen-request-body-name: body
   /present-proof/send-request:
     post:
+      operationId: send_proof_request
       tags:
       - present-proof
       summary: Sends a free presentation request not bound to any proposal
@@ -2488,6 +2491,7 @@ paths:
                 $ref: '#/components/schemas/CredRevRecordResult'
   /revocation/publish-revocations:
     post:
+      operationId: publish_revocations
       tags:
       - revocation
       summary: Publish pending revocations to ledger
@@ -2715,6 +2719,7 @@ paths:
                 $ref: '#/components/schemas/RevocationModuleResponse'
   /revocation/revoke:
     post:
+      operationId: revoke_credential
       tags:
       - revocation
       summary: Revoke an issued credential
@@ -3926,6 +3931,8 @@ components:
       required:
       - requested_attributes
       - requested_predicates
+      - name
+      - version
       type: object
       properties:
         name:

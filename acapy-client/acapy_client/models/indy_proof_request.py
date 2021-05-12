@@ -14,54 +14,54 @@ T = TypeVar("T", bound="IndyProofRequest")
 class IndyProofRequest:
     """ """
 
+    name: str
     requested_attributes: IndyProofRequestRequestedAttributes
     requested_predicates: IndyProofRequestRequestedPredicates
-    name: Union[Unset, str] = UNSET
+    version: str
     non_revoked: Union[Unset, IndyProofReqNonRevoked] = UNSET
     nonce: Union[Unset, str] = UNSET
-    version: Union[Unset, str] = UNSET
     additional_properties: Dict[str, Any] = attr.ib(init=False, factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
+        name = self.name
         requested_attributes = self.requested_attributes.to_dict()
 
         requested_predicates = self.requested_predicates.to_dict()
 
-        name = self.name
+        version = self.version
         non_revoked: Union[Unset, Dict[str, Any]] = UNSET
         if not isinstance(self.non_revoked, Unset):
             non_revoked = self.non_revoked.to_dict()
 
         nonce = self.nonce
-        version = self.version
 
         field_dict: Dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
             {
+                "name": name,
                 "requested_attributes": requested_attributes,
                 "requested_predicates": requested_predicates,
+                "version": version,
             }
         )
-        if name is not UNSET:
-            field_dict["name"] = name
         if non_revoked is not UNSET:
             field_dict["non_revoked"] = non_revoked
         if nonce is not UNSET:
             field_dict["nonce"] = nonce
-        if version is not UNSET:
-            field_dict["version"] = version
 
         return field_dict
 
     @classmethod
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
         d = src_dict.copy()
+        name = d.pop("name")
+
         requested_attributes = IndyProofRequestRequestedAttributes.from_dict(d.pop("requested_attributes"))
 
         requested_predicates = IndyProofRequestRequestedPredicates.from_dict(d.pop("requested_predicates"))
 
-        name = d.pop("name", UNSET)
+        version = d.pop("version")
 
         non_revoked: Union[Unset, IndyProofReqNonRevoked] = UNSET
         _non_revoked = d.pop("non_revoked", UNSET)
@@ -70,15 +70,13 @@ class IndyProofRequest:
 
         nonce = d.pop("nonce", UNSET)
 
-        version = d.pop("version", UNSET)
-
         indy_proof_request = cls(
+            name=name,
             requested_attributes=requested_attributes,
             requested_predicates=requested_predicates,
-            name=name,
+            version=version,
             non_revoked=non_revoked,
             nonce=nonce,
-            version=version,
         )
 
         indy_proof_request.additional_properties = d
