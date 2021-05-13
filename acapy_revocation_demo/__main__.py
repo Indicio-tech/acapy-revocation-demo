@@ -8,29 +8,32 @@ from typing import cast
 from acapy_client import Client
 from acapy_client.api.connection import create_invitation, receive_invitation
 from acapy_client.api.credential_definition import publish_cred_def
-from acapy_client.api.issue_credential_v_10 import issue_credential_automated
-from acapy_client.api.present_proof import send_proof_request, get_present_proof_records
+from acapy_client.api.issue_credential_v_10 import (
+    get_issue_credential_records_cred_ex_id,
+    issue_credential_automated,
+)
 from acapy_client.api.ledger import accept_taa, fetch_taa
+from acapy_client.api.present_proof import get_present_proof_records, send_proof_request
+from acapy_client.api.revocation import publish_revocations, revoke_credential
 from acapy_client.api.schema import publish_schema
-from acapy_client.api.revocation import revoke_credential, publish_revocations
 from acapy_client.api.wallet import create_did, set_public_did
 from acapy_client.models import (
     CreateInvitationRequest,
-    ReceiveInvitationRequest,
-    TAAAccept,
-    CredentialDefinitionSendRequest,
-    SchemaSendRequest,
-    V10CredentialProposalRequestMand,
     CredAttrSpec,
+    CredentialDefinitionSendRequest,
     CredentialPreview,
     IndyProofRequest,
     IndyProofRequestRequestedAttributes,
     IndyProofRequestRequestedPredicates,
-    V10PresentationSendRequestRequest,
-    RevokeRequest,
-    V10CredentialExchange,
     PublishRevocations,
+    ReceiveInvitationRequest,
+    SchemaSendRequest,
+    TAAAccept,
+    V10CredentialExchange,
+    V10CredentialProposalRequestMand,
+    V10PresentationSendRequestRequest,
 )
+from acapy_client.types import Response
 import httpx
 
 
@@ -43,10 +46,12 @@ def describe(description: str, api):
         print(description)
         request = api._get_kwargs(**kwargs)
         print("Request:", json.dumps(request, indent=2))
-        result = api.sync(**kwargs)
-        assert result
-        print("Response:", json.dumps(result.to_dict(), indent=2))
-        return result
+        result: Response = api.sync_detailed(**kwargs)
+        if result.status_code == 200:
+            print("Response:", json.dumps(result.parsed.to_dict(), indent=2))
+        else:
+            raise Exception("Request failed!", result.status_code, result.content)
+        return result.parsed
 
     return _describe
 
@@ -170,11 +175,15 @@ def main():
     # }}}
 
     # Revoke credential and request presentation {{{
+    cred_ex = describe(
+        "Retrieve credential revocation info", get_issue_credential_records_cred_ex_id
+    )(client=issuer, cred_ex_id=issue_result.credential_exchange_id)
+
     result = describe("Revoke credential", revoke_credential)(
         client=issuer,
-        json_body=RevokeRequest(
-            cred_ex_id=issue_result.credential_exchange_id, publish=False
-        ),
+        cred_rev_id=cred_ex.revocation_id,
+        rev_reg_id=cred_ex.revoc_reg_id,
+        publish=False,
     )
     result = describe("Publish revocations", publish_revocations)(
         client=issuer, json_body=PublishRevocations()
@@ -201,7 +210,7 @@ def main():
             ),
         ),
     )
-    time.sleep(1)
+    time.sleep(5)
     result = describe("List presentations", get_present_proof_records)(client=issuer)
     # }}}
 

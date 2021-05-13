@@ -1,32 +1,76 @@
 version: '3'
 services:
   holder:
-    image: bcgovimages/aries-cloudagent:py36-1.16-0_0.6.0
+    image: bcgovimages/aries-cloudagent:py36-1.15-0_0.5.4
     ports:
       - 3000:3000
       - 3001:3001
     volumes:
       - ./configs:/home/indy/configs:z
     command: >
-      start --arg-file ./configs/holder.yml
+      start
         -e http://holder:3000
         --webhook-url http://webhook-listener:8080
+        --label holder
+        --inbound-transport http 0.0.0.0 3000
+        --outbound-transport http
+        --genesis-url https://raw.githubusercontent.com/Indicio-tech/indicio-network/master/genesis_files/pool_transactions_testnet_genesis
+        --admin 0.0.0.0 3001
+        --admin-insecure-mode
+        --debug-connections
+        --auto-accept-invites
+        --auto-accept-requests
+        --auto-ping-connection
+        --preserve-exchange-records
+        --auto-store-credential
+        --auto-respond-credential-proposal
+        --auto-respond-credential-offer
+        --auto-respond-credential-request
+        --auto-respond-presentation-proposal
+        --auto-respond-presentation-request
+        --auto-verify-presentation
+        --wallet-type indy
+        --wallet-name default
+        --wallet-key insecure
+        --log-level debug
     depends_on:
       - tails
       - webhook-listener
 
   issuer:
-    image: bcgovimages/aries-cloudagent:py36-1.16-0_0.6.0
+    image: bcgovimages/aries-cloudagent:py36-1.15-0_0.5.4
     ports:
       - 3002:3000
       - 3003:3001
     volumes:
       - ./configs:/home/indy/configs:z
     command: >
-      start --arg-file ./configs/issuer.yml
+      start
         -e http://issuer:3000
         --tails-server-base-url http://tails:6543
         --webhook-url http://webhook-listener:8080
+        --label issuer
+        --inbound-transport http 0.0.0.0 3000
+        --outbound-transport http
+        --genesis-url https://raw.githubusercontent.com/Indicio-tech/indicio-network/master/genesis_files/pool_transactions_testnet_genesis
+        --admin 0.0.0.0 3001
+        --admin-insecure-mode
+        --debug-connections
+        --auto-accept-invites
+        --auto-accept-requests
+        --auto-ping-connection
+        --preserve-exchange-records
+        --auto-store-credential
+        --auto-respond-credential-proposal
+        --auto-respond-credential-offer
+        --auto-respond-credential-request
+        --auto-respond-presentation-proposal
+        --auto-respond-presentation-request
+        --auto-verify-presentation
+        --wallet-type indy
+        --wallet-name default
+        --wallet-key insecure
+        --log-level debug
     depends_on:
       - tails
       - webhook-listener
