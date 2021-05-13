@@ -2489,7 +2489,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CredRevRecordResult'
-  /revocation/publish-revocations:
+  /issue-credential/publish-revocations:
     post:
       operationId: publish_revocations
       tags:
@@ -2717,18 +2717,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RevocationModuleResponse'
-  /revocation/revoke:
+  /issue-credential/revoke:
     post:
       operationId: revoke_credential
       tags:
       - revocation
       summary: Revoke an issued credential
-      requestBody:
-        content:
-          'application/json':
-            schema:
-              $ref: '#/components/schemas/RevokeRequest'
-        required: false
+      parameters:
+        - name: rev_reg_id
+          in: query
+          description: Revocation registry identifier
+          required: true
+          schema:
+            type: string
+        - name: cred_rev_id
+          in: query
+          description: Credential revocation identifier
+          required: true
+          schema:
+            type: integer
+        - name: publish
+          in: query
+          description: Publish revocation to ledger immediatly or mark pending
+          required: false
+          schema:
+            type: boolean
       responses:
         200:
           description: ""
@@ -3655,7 +3668,6 @@ components:
       type: object
       required:
         - did
-        - posture
         - verkey
       properties:
         did:

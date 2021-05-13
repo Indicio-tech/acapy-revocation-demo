@@ -1,8 +1,9 @@
-from typing import Any, Dict, List, Type, TypeVar
+from typing import Any, Dict, List, Type, TypeVar, Union
 
 import attr
 
 from ..models.did_posture import DIDPosture
+from ..types import UNSET, Unset
 
 T = TypeVar("T", bound="DID")
 
@@ -12,25 +13,27 @@ class DID:
     """ """
 
     did: str
-    posture: DIDPosture
     verkey: str
+    posture: Union[Unset, DIDPosture] = UNSET
     additional_properties: Dict[str, Any] = attr.ib(init=False, factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         did = self.did
-        posture = self.posture.value
-
         verkey = self.verkey
+        posture: Union[Unset, str] = UNSET
+        if not isinstance(self.posture, Unset):
+            posture = self.posture.value
 
         field_dict: Dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
             {
                 "did": did,
-                "posture": posture,
                 "verkey": verkey,
             }
         )
+        if posture is not UNSET:
+            field_dict["posture"] = posture
 
         return field_dict
 
@@ -39,14 +42,17 @@ class DID:
         d = src_dict.copy()
         did = d.pop("did")
 
-        posture = DIDPosture(d.pop("posture"))
-
         verkey = d.pop("verkey")
+
+        posture: Union[Unset, DIDPosture] = UNSET
+        _posture = d.pop("posture", UNSET)
+        if not isinstance(_posture, Unset):
+            posture = DIDPosture(_posture)
 
         did = cls(
             did=did,
-            posture=posture,
             verkey=verkey,
+            posture=posture,
         )
 
         did.additional_properties = d

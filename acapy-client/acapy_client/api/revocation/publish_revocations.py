@@ -12,7 +12,7 @@ def _get_kwargs(
     client: Client,
     json_body: PublishRevocations,
 ) -> Dict[str, Any]:
-    url = "{}/revocation/publish-revocations".format(client.base_url)
+    url = "{}/issue-credential/publish-revocations".format(client.base_url)
 
     headers: Dict[str, Any] = client.get_headers()
     cookies: Dict[str, Any] = client.get_cookies()
