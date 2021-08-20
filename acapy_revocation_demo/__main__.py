@@ -8,24 +8,24 @@ from typing import cast
 from acapy_client import Client
 from acapy_client.api.connection import create_invitation, receive_invitation
 from acapy_client.api.credential_definition import publish_cred_def
-from acapy_client.api.issue_credential_v_10 import (
+from acapy_client.api.issue_credential import (
     get_issue_credential_records_cred_ex_id,
     issue_credential_automated,
+    post_issue_credential_publish_revocations,
+    post_issue_credential_revoke,
 )
 from acapy_client.api.ledger import accept_taa, fetch_taa
 from acapy_client.api.present_proof import get_present_proof_records, send_proof_request
-from acapy_client.api.revocation import publish_revocations, revoke_credential
 from acapy_client.api.schema import publish_schema
 from acapy_client.api.wallet import create_did, set_public_did
 from acapy_client.models import (
-    CreateInvitationRequest,
     CredAttrSpec,
     CredentialDefinitionSendRequest,
     CredentialPreview,
     IndyProofRequest,
     IndyProofRequestRequestedAttributes,
     IndyProofRequestRequestedPredicates,
-    PublishRevocations,
+    V10PublishRevocations,
     ReceiveInvitationRequest,
     SchemaSendRequest,
     TAAAccept,
@@ -48,7 +48,10 @@ def describe(description: str, api):
         print("Request:", json.dumps(request, indent=2))
         result: Response = api.sync_detailed(**kwargs)
         if result.status_code == 200:
-            print("Response:", json.dumps(result.parsed.to_dict(), indent=2))
+            print(
+                "Response:",
+                json.dumps(result.parsed.to_dict() if result.parsed else {}, indent=2),
+            )
         else:
             raise Exception("Request failed!", result.status_code, result.content)
         return result.parsed
@@ -63,7 +66,7 @@ def main():
 
     # Establish Connection {{{
     holder_conn_record = describe("Create new invitation in holder", create_invitation)(
-        client=holder, json_body=CreateInvitationRequest(), auto_accept="true"
+        client=holder, auto_accept="true"
     )
 
     issuer_conn_record = describe("Receive invitation in issuer", receive_invitation)(
@@ -179,14 +182,14 @@ def main():
         "Retrieve credential revocation info", get_issue_credential_records_cred_ex_id
     )(client=issuer, cred_ex_id=issue_result.credential_exchange_id)
 
-    result = describe("Revoke credential", revoke_credential)(
+    result = describe("Revoke credential", post_issue_credential_revoke)(
         client=issuer,
         cred_rev_id=cred_ex.revocation_id,
         rev_reg_id=cred_ex.revoc_reg_id,
         publish=False,
     )
-    result = describe("Publish revocations", publish_revocations)(
-        client=issuer, json_body=PublishRevocations()
+    result = describe("Publish revocations", post_issue_credential_publish_revocations)(
+        client=issuer, json_body=V10PublishRevocations()
     )
     time.sleep(10)
     result = describe(
