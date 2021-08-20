@@ -3,32 +3,38 @@
 import json
 import os
 import time
-from typing import cast
+from typing import Optional, Union, cast
 
 from acapy_client import Client
 from acapy_client.api.connection import create_invitation, receive_invitation
 from acapy_client.api.credential_definition import publish_cred_def
-from acapy_client.api.issue_credential import (
-    get_issue_credential_records_cred_ex_id,
+from acapy_client.api.issue_credential_v10 import (
     issue_credential_automated,
-    post_issue_credential_publish_revocations,
-    post_issue_credential_revoke,
 )
+from acapy_client.api.revocation import publish_revocations, revoke_credential
 from acapy_client.api.ledger import accept_taa, fetch_taa
-from acapy_client.api.present_proof import get_present_proof_records, send_proof_request
+from acapy_client.api.present_proof_v10 import (
+    get_present_proof_records,
+    send_proof_request,
+)
 from acapy_client.api.schema import publish_schema
 from acapy_client.api.wallet import create_did, set_public_did
 from acapy_client.models import (
+    CreateInvitationRequest,
     CredAttrSpec,
     CredentialDefinitionSendRequest,
     CredentialPreview,
+    DIDCreate,
     IndyProofRequest,
     IndyProofRequestRequestedAttributes,
     IndyProofRequestRequestedPredicates,
-    V10PublishRevocations,
+    PublishRevocations,
     ReceiveInvitationRequest,
+    RevokeRequest,
     SchemaSendRequest,
+    SchemaSendResult,
     TAAAccept,
+    TxnOrSchemaSendResult,
     V10CredentialExchange,
     V10CredentialProposalRequestMand,
     V10PresentationSendRequestRequest,
@@ -66,7 +72,7 @@ def main():
 
     # Establish Connection {{{
     holder_conn_record = describe("Create new invitation in holder", create_invitation)(
-        client=holder, auto_accept="true"
+        client=holder, json_body=CreateInvitationRequest(), auto_accept="true"
     )
 
     issuer_conn_record = describe("Receive invitation in issuer", receive_invitation)(
@@ -80,7 +86,7 @@ def main():
     # Prepare for writing to ledger {{{
     did_info = describe(
         "Create new DID for publishing to ledger in issuer", create_did
-    )(client=issuer).result
+    )(client=issuer, json_body=DIDCreate()).result
 
     print("Publishing DID through https://selfserve.indiciotech.io")
     response = httpx.post(
@@ -115,7 +121,9 @@ def main():
     # }}}
 
     # Prepare Credential ledger artifacts {{{
-    result = describe("Publish schema to the ledger", publish_schema)(
+    result: Optional[Union[TxnOrSchemaSendResult, SchemaSendResult]] = describe(
+        "Publish schema to the ledger", publish_schema
+    )(
         client=issuer,
         json_body=SchemaSendRequest(
             attributes=["firstname", "age"],
@@ -124,18 +132,18 @@ def main():
         ),
     )
 
-    issuer.timeout = 30
+    assert result
+    assert isinstance(result, SchemaSendResult)
     result = describe(
         "Publish credential definition with revocation support", publish_cred_def
     )(
-        client=issuer,
+        client=issuer.with_timeout(30),
         json_body=CredentialDefinitionSendRequest(
             revocation_registry_size=10,
             schema_id=result.schema_id,
             support_revocation=True,
         ),
     )
-    issuer.timeout = 5
     # }}}
 
     # Issue Credential and request presentation {{{
@@ -178,18 +186,15 @@ def main():
     # }}}
 
     # Revoke credential and request presentation {{{
-    cred_ex = describe(
-        "Retrieve credential revocation info", get_issue_credential_records_cred_ex_id
-    )(client=issuer, cred_ex_id=issue_result.credential_exchange_id)
-
-    result = describe("Revoke credential", post_issue_credential_revoke)(
+    result = describe("Revoke credential", revoke_credential)(
         client=issuer,
-        cred_rev_id=cred_ex.revocation_id,
-        rev_reg_id=cred_ex.revoc_reg_id,
-        publish=False,
+        json_body=RevokeRequest(
+            cred_ex_id=issue_result.credential_exchange_id,
+            publish=False,
+        ),
     )
-    result = describe("Publish revocations", post_issue_credential_publish_revocations)(
-        client=issuer, json_body=V10PublishRevocations()
+    result = describe("Publish revocations", publish_revocations)(
+        client=issuer, json_body=PublishRevocations()
     )
     time.sleep(10)
     result = describe(

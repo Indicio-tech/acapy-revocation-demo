@@ -1,6 +1,6 @@
 [[package]]
 name = "acapy-client"
-version = "v0.5.4"
+version = "v0.7.0"
 description = "A client library for accessing Aries Cloud Agent"
 category = "main"
 optional = false
@@ -15,8 +15,8 @@ python-dateutil = "^2.8.0"
 [package.source]
 type = "git"
 url = "https://github.com/dbluhm/acapy-client"
-reference = "0.5.4"
-resolved_reference = "35f00b26327ef494c3f3bece0bf7bfe585608d98"
+reference = "d6099e51ee1d2d76490148e42b4314c8c5fcbe9b"
+resolved_reference = "d6099e51ee1d2d76490148e42b4314c8c5fcbe9b"
 
 [[package]]
 name = "anyio"
@@ -506,7 +506,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6.9"
-content-hash = "4c6d36b5ff8abfbd7dc1ce4b110fa4bba625a851b485d6d71496bef5efbb1113"
+content-hash = "8716b6ed28d9de76617e2c507b6ca5b52da11296b17344a297ef9de569702fcf"
 
 [metadata.files]
 acapy-client = []
