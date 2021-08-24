@@ -51,12 +51,16 @@ def describe(description: str, api):
     def _describe(**kwargs):
         print(description)
         request = api._get_kwargs(**kwargs)
-        print("Request:", json.dumps(request, indent=2))
+        print("Request:", json.dumps(request, sort_keys=True, indent=2))
         result: Response = api.sync_detailed(**kwargs)
         if result.status_code == 200:
             print(
                 "Response:",
-                json.dumps(result.parsed.to_dict() if result.parsed else {}, indent=2),
+                json.dumps(
+                    result.parsed.to_dict() if result.parsed else {},
+                    indent=2,
+                    sort_keys=True,
+                ),
             )
         else:
             raise Exception("Request failed!", result.status_code, result.content)
