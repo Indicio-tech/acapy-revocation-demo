@@ -1,5 +1,6 @@
 """Run the demo."""
 
+import asyncio
 import json
 import os
 import time
@@ -39,6 +40,9 @@ from acapy_client.models import (
     V10CredentialProposalRequestMand,
     V10PresentationSendRequestRequest,
 )
+from acapy_client.models.indy_proof_request_non_revoked import IndyProofRequestNonRevoked
+from acapy_client.models.v10_presentation_exchange import V10PresentationExchange
+from acapy_client.models.v10_presentation_exchange_list import V10PresentationExchangeList
 from acapy_client.types import Response
 import httpx
 
@@ -68,8 +72,16 @@ def describe(description: str, api):
 
     return _describe
 
+def presentation_result_summary(pres: V10PresentationExchange):
+    print(f"Presentation identified by {pres.presentation_request.name}: {pres.presentation_request_dict.id}")
+    print(json.dumps({
+        "state": pres.state or None,
+        "verified": pres.verified or None,
+        "presentation_request": pres.presentation_request_dict.to_dict(),
+    }, indent=2))
 
-def main():
+
+async def main():
     """Run steps."""
     holder = Client(base_url=HOLDER_URL)
     issuer = Client(base_url=ISSUER_URL)
@@ -100,6 +112,7 @@ def main():
             "did": did_info.did,
             "verkey": did_info.verkey,
         },
+        timeout=30,
     )
     if response.is_error:
         print("Failed to publish DID:", response.text)
@@ -165,10 +178,12 @@ def main():
         ),
     )
     issue_result = cast(V10CredentialExchange, issue_result)
-    time.sleep(1)
+    print("Waiting 10 seconds for credential issuance to complete...")
+    time.sleep(10)
     result = describe("Request proof from holder", send_proof_request)(
         client=issuer,
         json_body=V10PresentationSendRequestRequest(
+            comment="Before revocation",
             connection_id=issuer_conn_record.connection_id,
             proof_request=IndyProofRequest(
                 name="proof of name",
@@ -177,16 +192,16 @@ def main():
                     {
                         "firstname": {
                             "name": "firstname",
-                            "non_revoked": {"to": int(time.time())},
                         }
                     }
                 ),
                 requested_predicates=IndyProofRequestRequestedPredicates(),
+                non_revoked=IndyProofRequestNonRevoked.from_dict({"to": int(time.time())}),
             ),
         ),
     )
-    time.sleep(1)
-    result = describe("List presentations", get_present_proof_records)(client=issuer)
+    print("Waiting 5 seconds for presentation to complete...")
+    time.sleep(5)
     # }}}
 
     # Revoke credential and request presentation {{{
@@ -200,12 +215,14 @@ def main():
     result = describe("Publish revocations", publish_revocations)(
         client=issuer, json_body=PublishRevocations()
     )
+    print("Waiting 10 seconds for revocation to propagate...")
     time.sleep(10)
     result = describe(
         "Request proof from holder again after revoking", send_proof_request
     )(
         client=issuer,
         json_body=V10PresentationSendRequestRequest(
+            comment="After revocation",
             connection_id=issuer_conn_record.connection_id,
             proof_request=IndyProofRequest(
                 name="proof of name",
@@ -214,7 +231,54 @@ def main():
                     {
                         "firstname": {
                             "name": "firstname",
-                            "non_revoked": {"to": int(time.time())},
+                        }
+                    }
+                ),
+                requested_predicates=IndyProofRequestRequestedPredicates(),
+                non_revoked=IndyProofRequestNonRevoked.from_dict({"to": int(time.time())}),
+            ),
+        ),
+    )
+    print("Waiting 10 seconds for presentation to complete...")
+    time.sleep(10)
+    result = describe(
+        "Attempt another proof with non_revoked interval to before revocation", send_proof_request
+    )(
+        client=issuer,
+        json_body=V10PresentationSendRequestRequest(
+            comment="After revocation, interval before revocation",
+            connection_id=issuer_conn_record.connection_id,
+            proof_request=IndyProofRequest(
+                name="proof of name",
+                version="0.1.0",
+                requested_attributes=IndyProofRequestRequestedAttributes.from_dict(
+                    {
+                        "firstname": {
+                            "name": "firstname",
+                        }
+                    }
+                ),
+                requested_predicates=IndyProofRequestRequestedPredicates(),
+                non_revoked=IndyProofRequestNonRevoked.from_dict({"to": before_revoking_time}),
+            ),
+        ),
+    )
+    print("Waiting 10 seconds for presentation to complete...")
+    time.sleep(10)
+    result = describe(
+        "Attempt another proof with no non_revoked interval", send_proof_request
+    )(
+        client=issuer,
+        json_body=V10PresentationSendRequestRequest(
+            comment="After revocation, no non_revoked interval provided",
+            connection_id=issuer_conn_record.connection_id,
+            proof_request=IndyProofRequest(
+                name="proof of name",
+                version="0.1.0",
+                requested_attributes=IndyProofRequestRequestedAttributes.from_dict(
+                    {
+                        "firstname": {
+                            "name": "firstname",
                         }
                     }
                 ),
@@ -222,10 +286,62 @@ def main():
             ),
         ),
     )
-    time.sleep(5)
-    result = describe("List presentations", get_present_proof_records)(client=issuer)
+    print("Waiting 10 seconds for presentation to complete...")
+    time.sleep(10)
+    result = describe(
+        "Attempt another proof with non_revoked interval and local non_revoked override", send_proof_request
+    )(
+        client=issuer,
+        json_body=V10PresentationSendRequestRequest(
+            comment="After revocation, non_revoked interval and local non_revoked override",
+            connection_id=issuer_conn_record.connection_id,
+            proof_request=IndyProofRequest(
+                name="proof of name",
+                version="0.1.0",
+                requested_attributes=IndyProofRequestRequestedAttributes.from_dict(
+                    {
+                        "firstname": {
+                            "name": "firstname",
+                            "non_revoked": {"to": before_revoking_time}
+                        }
+                    }
+                ),
+                requested_predicates=IndyProofRequestRequestedPredicates(),
+                non_revoked=IndyProofRequestNonRevoked.from_dict({"to": int(time.time())}),
+            ),
+        ),
+    )
+    print("Waiting 10 seconds for presentation to complete...")
+    time.sleep(10)
+    result = describe(
+        "Attempt another proof with only local non_revoked interval", send_proof_request
+    )(
+        client=issuer,
+        json_body=V10PresentationSendRequestRequest(
+            comment="After revocation, local non_revoked interval only",
+            connection_id=issuer_conn_record.connection_id,
+            proof_request=IndyProofRequest(
+                name="proof of name",
+                version="0.1.0",
+                requested_attributes=IndyProofRequestRequestedAttributes.from_dict(
+                    {
+                        "firstname": {
+                            "name": "firstname",
+                            "non_revoked": {"to": before_revoking_time}
+                        }
+                    }
+                ),
+                requested_predicates=IndyProofRequestRequestedPredicates(),
+            ),
+        ),
+    )
+    print("Waiting 10 seconds for presentations to complete...")
+    time.sleep(10)
+    presentations = describe("List presentations", get_present_proof_records)(client=issuer)
+    for pres in presentations.results:
+        presentation_result_summary(pres)
     # }}}
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.get_event_loop().run_until_complete(main())
