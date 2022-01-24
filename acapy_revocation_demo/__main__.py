@@ -212,6 +212,7 @@ async def main():
             publish=False,
         ),
     )
+    before_revoking_time = int(time.time())
     result = describe("Publish revocations", publish_revocations)(
         client=issuer, json_body=PublishRevocations()
     )
