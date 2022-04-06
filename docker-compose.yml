@@ -78,10 +78,7 @@ services:
       - webhook-listener
 
   tails:
-    image: indy-tails-server
-    build:
-      context: ./indy-tails-server
-      dockerfile: ./docker/Dockerfile.tails-server
+    image: ghcr.io/bcgov/tails-server:latest
     ports:
       - 6543:6543
     environment:
