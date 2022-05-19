@@ -1,7 +1,7 @@
 version: '3'
 services:
   holder:
-    image: bcgovimages/aries-cloudagent:py36-1.16-1_0.7.0
+    image: bcgovimages/aries-cloudagent:py36-1.16-1_0.7.3
     ports:
       - 3000:3000
       - 3001:3001
@@ -39,7 +39,7 @@ services:
       - webhook-listener
 
   issuer:
-    image: bcgovimages/aries-cloudagent:py36-1.16-1_0.7.0
+    image: bcgovimages/aries-cloudagent:py36-1.16-1_0.7.3
     ports:
       - 3002:3000
       - 3003:3001
