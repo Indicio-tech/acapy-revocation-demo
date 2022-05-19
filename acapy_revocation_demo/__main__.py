@@ -96,6 +96,7 @@ async def main():
         json_body=ReceiveInvitationRequest.from_dict(
             holder_conn_record.invitation.to_dict()
         ),
+        auto_accept="true",
     )
     # }}}
 
@@ -214,7 +215,8 @@ async def main():
     )
     before_revoking_time = int(time.time())
     result = describe("Publish revocations", publish_revocations)(
-        client=issuer, json_body=PublishRevocations()
+        client=issuer.with_timeout(30),
+        json_body=PublishRevocations()
     )
     print("Waiting 10 seconds for revocation to propagate...")
     time.sleep(10)
