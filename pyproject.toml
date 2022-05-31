@@ -6,12 +6,12 @@ authors = ["Daniel Bluhm <dbluhm@pm.me>"]
 license = "Apache-2.0"
 
 [tool.poetry.dependencies]
-python = "^3.6.9"
-acapy-client = { git = "https://github.com/dbluhm/acapy-client", rev = "d6099e51ee1d2d76490148e42b4314c8c5fcbe9b" }
-PyYAML = "^5.4.1"
+python = "^3.7"
+acapy-client = { git = "https://github.com/indicio-tech/acapy-client", rev = "0.7.3" }
+aiohttp = "^3.8.1"
 
 [tool.poetry.dev-dependencies]
-black = "^21.5b1"
+black = "^22.3.0"
 flake8 = "^3.9.2"
 pre-commit = "^2.12.1"
 
