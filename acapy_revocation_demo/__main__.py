@@ -77,7 +77,8 @@ def presentation_result_summary(pres: V10PresentationExchange):
     print(json.dumps({
         "state": pres.state or None,
         "verified": pres.verified or None,
-        "presentation_request": pres.presentation_request_dict.to_dict(),
+        "presentation_request": pres.presentation_request.to_dict(),
+        "comment": pres.presentation_request_dict.comment,
     }, indent=2))
 
 
@@ -181,6 +182,7 @@ async def main():
     issue_result = cast(V10CredentialExchange, issue_result)
     print("Waiting 10 seconds for credential issuance to complete...")
     time.sleep(10)
+    non_revoked_time = int(time.time())
     result = describe("Request proof from holder", send_proof_request)(
         client=issuer,
         json_body=V10PresentationSendRequestRequest(
@@ -197,7 +199,9 @@ async def main():
                     }
                 ),
                 requested_predicates=IndyProofRequestRequestedPredicates(),
-                non_revoked=IndyProofRequestNonRevoked.from_dict({"to": int(time.time())}),
+                non_revoked=IndyProofRequestNonRevoked.from_dict(
+                    {"from": non_revoked_time, "to": non_revoked_time}
+                ),
             ),
         ),
     )
@@ -213,19 +217,20 @@ async def main():
             publish=False,
         ),
     )
-    before_revoking_time = int(time.time())
+    before_revoking_time = non_revoked_time
     result = describe("Publish revocations", publish_revocations)(
         client=issuer.with_timeout(30),
         json_body=PublishRevocations()
     )
     print("Waiting 10 seconds for revocation to propagate...")
     time.sleep(10)
+    non_revoked_time = int(time.time())
     result = describe(
         "Request proof from holder again after revoking", send_proof_request
     )(
         client=issuer,
         json_body=V10PresentationSendRequestRequest(
-            comment="After revocation",
+            comment="After revocation (should verify false)",
             connection_id=issuer_conn_record.connection_id,
             proof_request=IndyProofRequest(
                 name="proof of name",
@@ -238,7 +243,9 @@ async def main():
                     }
                 ),
                 requested_predicates=IndyProofRequestRequestedPredicates(),
-                non_revoked=IndyProofRequestNonRevoked.from_dict({"to": int(time.time())}),
+                non_revoked=IndyProofRequestNonRevoked.from_dict(
+                    {"from": non_revoked_time, "to": non_revoked_time}
+                ),
             ),
         ),
     )
@@ -249,7 +256,7 @@ async def main():
     )(
         client=issuer,
         json_body=V10PresentationSendRequestRequest(
-            comment="After revocation, interval before revocation",
+            comment="After revocation, interval before revocation (should verify true)",
             connection_id=issuer_conn_record.connection_id,
             proof_request=IndyProofRequest(
                 name="proof of name",
@@ -262,7 +269,9 @@ async def main():
                     }
                 ),
                 requested_predicates=IndyProofRequestRequestedPredicates(),
-                non_revoked=IndyProofRequestNonRevoked.from_dict({"to": before_revoking_time}),
+                non_revoked=IndyProofRequestNonRevoked.from_dict(
+                    {"from": before_revoking_time, "to": before_revoking_time}
+                ),
             ),
         ),
     )
@@ -273,7 +282,7 @@ async def main():
     )(
         client=issuer,
         json_body=V10PresentationSendRequestRequest(
-            comment="After revocation, no non_revoked interval provided",
+            comment="After revocation, no non_revoked interval provided (should verify true)",
             connection_id=issuer_conn_record.connection_id,
             proof_request=IndyProofRequest(
                 name="proof of name",
@@ -291,12 +300,13 @@ async def main():
     )
     print("Waiting 10 seconds for presentation to complete...")
     time.sleep(10)
+    non_revoked_time = int(time.time())
     result = describe(
         "Attempt another proof with non_revoked interval and local non_revoked override", send_proof_request
     )(
         client=issuer,
         json_body=V10PresentationSendRequestRequest(
-            comment="After revocation, non_revoked interval and local non_revoked override",
+            comment="After revocation, non_revoked interval and local non_revoked override (should verify true)",
             connection_id=issuer_conn_record.connection_id,
             proof_request=IndyProofRequest(
                 name="proof of name",
@@ -305,23 +315,26 @@ async def main():
                     {
                         "firstname": {
                             "name": "firstname",
-                            "non_revoked": {"to": before_revoking_time}
+                            "non_revoked": {"from": before_revoking_time, "to": before_revoking_time}
                         }
                     }
                 ),
                 requested_predicates=IndyProofRequestRequestedPredicates(),
-                non_revoked=IndyProofRequestNonRevoked.from_dict({"to": int(time.time())}),
+                non_revoked=IndyProofRequestNonRevoked.from_dict(
+                    {"from": non_revoked_time, "to": non_revoked_time}
+                ),
             ),
         ),
     )
     print("Waiting 10 seconds for presentation to complete...")
     time.sleep(10)
+    non_revoked_time = int(time.time())
     result = describe(
         "Attempt another proof with only local non_revoked interval", send_proof_request
     )(
         client=issuer,
         json_body=V10PresentationSendRequestRequest(
-            comment="After revocation, local non_revoked interval only",
+            comment="After revocation, local non_revoked interval only (should verify false)",
             connection_id=issuer_conn_record.connection_id,
             proof_request=IndyProofRequest(
                 name="proof of name",
@@ -330,7 +343,7 @@ async def main():
                     {
                         "firstname": {
                             "name": "firstname",
-                            "non_revoked": {"to": before_revoking_time}
+                            "non_revoked": {"from": non_revoked_time, "to": non_revoked_time}
                         }
                     }
                 ),
