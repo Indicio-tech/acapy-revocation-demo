@@ -117,8 +117,8 @@ def unwrap_or(value: Union[Unset, T], default: Optional[T] = None) -> Optional[T
     return default
 
 
-class AgentError(Exception):
-    """Raised on error in agent."""
+class ControllerError(Exception):
+    """Raised on error in controller."""
 
 
 class Event(NamedTuple):
@@ -126,7 +126,7 @@ class Event(NamedTuple):
     payload: dict
 
 
-class Agent:
+class Controller:
     """Interface for interacting with an agent."""
 
     def __init__(self, name: str, base_url: str, *, headers: Optional[dict] = None):
@@ -407,7 +407,7 @@ class Agent:
     async def onboard(self):
         genesis_url = await self.get_genesis_url()
         if not genesis_url:
-            raise AgentError("No ledger configured on agent")
+            raise ControllerError("No ledger configured on agent")
 
         taa = await self.fetch_taa()
         if taa.taa_required is True and (
@@ -423,7 +423,9 @@ class Agent:
             public_did, verkey = await self.create_did()
             onboarder = get_onboarder(genesis_url)
             if not onboarder:
-                raise AgentError("Unrecognized ledger, cannot automatically onboard")
+                raise ControllerError(
+                    "Unrecognized ledger, cannot automatically onboard"
+                )
             await onboarder.onboard(public_did, verkey)
             await self.set_public_did(public_did)
 
@@ -431,26 +433,26 @@ class Agent:
 class Connection:
     def __init__(
         self,
-        agent: Agent,
+        controller: Controller,
         connection_id: str,
         record: Union[InvitationResult, ConnRecord],
     ):
-        self.agent = agent
+        self.controller = controller
         self.connection_id = connection_id
         self.record = record
 
     @property
     def name(self) -> str:
-        return f"{self.agent.name} ({self.connection_id})"
+        return f"{self.controller.name} ({self.connection_id})"
 
     @property
     def client(self) -> Client:
-        return self.agent.client
+        return self.controller.client
 
     async def wait_for_state(self, state: str):
-        assert self.agent.event_queue
+        assert self.controller.event_queue
         LOGGER.info("%s: Connection awaiting state %s...", self.name, state)
-        event = await self.agent.event_queue.get(
+        event = await self.controller.event_queue.get(
             lambda event: event.topic == "connections"
             and event.payload["connection_id"] == self.connection_id
             and event.payload["rfc23_state"] == state,
@@ -543,16 +545,16 @@ class Connection:
             ),
         )
         return CredentialExchange(
-            self.agent,
+            self.controller,
             self.connection_id,
             unwrap(result.credential_exchange_id),
             result,
         )
 
     async def get_received_cred_ex(self) -> "CredentialExchange":
-        assert self.agent.event_queue
+        assert self.controller.event_queue
         LOGGER.info("%s: Connection awaiting credential exchange...", self.name)
-        event = await self.agent.event_queue.get(
+        event = await self.controller.event_queue.get(
             lambda event: event.topic == "issue_credential"
             and event.payload["connection_id"] == self.connection_id,
             timeout=3,
@@ -562,7 +564,7 @@ class Connection:
             json.dumps(event.payload, sort_keys=True, indent=2),
         )
         return CredentialExchange(
-            self.agent,
+            self.controller,
             self.connection_id,
             credential_exchange_id=event.payload.get("credential_exchange_id"),
             record=V10CredentialExchange.from_dict(event.payload),
@@ -577,23 +579,23 @@ class RevocationNotification:
 class CredentialExchange:
     def __init__(
         self,
-        agent: Agent,
+        controller: Controller,
         connection_id: str,
         credential_exchange_id: str,
         record: V10CredentialExchange,
     ):
-        self.agent = agent
+        self.controller = controller
         self.connection_id = connection_id
         self.credential_exchange_id = credential_exchange_id
         self.record = record
 
     @property
     def name(self) -> str:
-        return f"{self.agent.name} Cred Ex ({self.credential_exchange_id})"
+        return f"{self.controller.name} Cred Ex ({self.credential_exchange_id})"
 
     @property
     def client(self) -> Client:
-        return self.agent.client
+        return self.controller.client
 
     def summary(self) -> str:
         return f"{self.name} Summary: " + json.dumps(
@@ -654,9 +656,9 @@ class CredentialExchange:
         self.record = result
 
     async def wait_for_state(self, state: str):
-        assert self.agent.event_queue
+        assert self.controller.event_queue
         LOGGER.info("%s: CredentialExchange awaiting state %s...", self.name, state)
-        event = await self.agent.event_queue.get(
+        event = await self.controller.event_queue.get(
             lambda event: event.topic == "issue_credential"
             and event.payload["connection_id"] == self.connection_id
             and event.payload["state"] == state,
@@ -698,9 +700,9 @@ class CredentialExchange:
         )
 
     async def receive_revocation_notification(self) -> RevocationNotification:
-        assert self.agent.event_queue
+        assert self.controller.event_queue
         LOGGER.info("%s awaiting notification of revocation...", self.name)
-        event = await self.agent.event_queue.get(
+        event = await self.controller.event_queue.get(
             lambda event: event.topic == "revocation-notification"
         )
         LOGGER.debug("%s: received event: %s", event)

@@ -6,7 +6,7 @@ import string
 import asyncio
 from typing import Optional
 
-from .agent import Agent, Connection
+from .controller import Controller, Connection
 
 ISSUER = getenv("ISSUER", "http://host.docker.internal:8021")
 VERIFIER = getenv("VERIFIER", "http://host.docker.internal:8031")
@@ -20,7 +20,7 @@ def random_string(size):
     )
 
 
-async def connected(lhs: Agent, rhs: Agent):
+async def connected(lhs: Controller, rhs: Controller):
     """Connect two agents."""
     async with lhs.listening(), rhs.listening():
         lhs_conn, invite = await lhs.create_invitation()
@@ -49,8 +49,8 @@ async def connected_issuer_holder(
     issuer_url: Optional[str] = None, holder_url: Optional[str] = None
 ):
     """Connect issuer and holder."""
-    issuer = Agent("issuer", issuer_url or ISSUER)
-    holder = Agent("holder", holder_url or HOLDER)
+    issuer = Controller("issuer", issuer_url or ISSUER)
+    holder = Controller("holder", holder_url or HOLDER)
     return await connected(issuer, holder)
 
 
@@ -58,12 +58,12 @@ async def connected_verifier_holder(
     verifier_url: Optional[str] = None, holder_url: Optional[str] = None
 ):
     """Connect verifier and holder."""
-    verifier = Agent("verifier", verifier_url or VERIFIER)
-    holder = Agent("holder", holder_url or HOLDER)
+    verifier = Controller("verifier", verifier_url or VERIFIER)
+    holder = Controller("holder", holder_url or HOLDER)
     return await connected(verifier, holder)
 
 
-async def prepare_ledger_artifacts(issuer: Agent, *, revocable: bool = False):
+async def prepare_ledger_artifacts(issuer: Controller, *, revocable: bool = False):
     """Prepare ledger artifacts for issuing a credential."""
     await issuer.onboard()
     schema_id = await issuer.publish_schema(
@@ -78,9 +78,9 @@ async def issued_credential(
 ):
     """Issue credential to holder."""
 
-    async with issuer.agent.listening(), holder.agent.listening():
+    async with issuer.controller.listening(), holder.controller.listening():
         _, cred_def_id = await prepare_ledger_artifacts(
-            issuer.agent, revocable=revocable
+            issuer.controller, revocable=revocable
         )
         issuer_cred_ex = await issuer.issue_credential(
             cred_def_id,
@@ -107,10 +107,10 @@ async def revoked_credential(issuer: Connection, holder: Connection):
         issuer, holder, revocable=True
     )
 
-    async with issuer.agent.listening(), holder.agent.listening():
+    async with issuer.controller.listening(), holder.controller.listening():
         await issuer_cred_ex.revoke(comment="revoked by demo script", publish=False)
-        holder.agent.clear_events()
-        await issuer.agent.publish_revocations()
+        holder.controller.clear_events()
+        await issuer.controller.publish_revocations()
         await holder_cred_ex.receive_revocation_notification()
 
 
