@@ -1,4 +1,4 @@
-from .controller.controller import (
+from .controller import (
     Connection,
     Controller,
     CredentialExchange,
