@@ -40,7 +40,7 @@ class PresentationExchange(Record[V10PresentationExchange]):
 
     def __init__(
         self,
-        controller: Controller,
+        controller: "Controller",
         connection_id: str,
         presentation_exchange_id: str,
         record: V10PresentationExchange,
@@ -54,7 +54,7 @@ class PresentationExchange(Record[V10PresentationExchange]):
     def name(self) -> str:
         return f"{self.controller.name} Pres Ex ({self.presentation_exchange_id})"
 
-    def _state_condition(self, event: Event) -> bool:
+    def _state_condition(self, event: "Event") -> bool:
         return (
             event.payload["connection_id"] == self.connection_id
             and event.payload["presentation_exchange_id"]

@@ -40,7 +40,7 @@ class CredentialExchange(Record[V10CredentialExchange]):
 
     def __init__(
         self,
-        controller: Controller,
+        controller: "Controller",
         connection_id: str,
         credential_exchange_id: str,
         record: V10CredentialExchange,
@@ -73,7 +73,7 @@ class CredentialExchange(Record[V10CredentialExchange]):
             sort_keys=True,
         )
 
-    def _state_condition(self, event: Event) -> bool:
+    def _state_condition(self, event: "Event") -> bool:
         return (
             event.payload["connection_id"] == self.connection_id
             and event.payload["credential_exchange_id"] == self.credential_exchange_id

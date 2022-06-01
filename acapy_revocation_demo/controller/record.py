@@ -38,7 +38,7 @@ class Record(Generic[RecordType]):
 
     topic: ClassVar[str]
 
-    def __init__(self, controller: Controller, record: RecordType):
+    def __init__(self, controller: "Controller", record: RecordType):
         self.controller = controller
         self.record = record
 
@@ -51,7 +51,7 @@ class Record(Generic[RecordType]):
         """Return name of object."""
         ...
 
-    def _state_condition(self, event: Event) -> bool:
+    def _state_condition(self, event: "Event") -> bool:
         """Condition for matching states to this record."""
         return True
 
@@ -59,9 +59,9 @@ class Record(Generic[RecordType]):
         self,
         state: str,
         *,
-        condition: Optional[Callable[[Event], bool]] = None,
+        condition: Optional[Callable[["Event"], bool]] = None,
         state_attribute: Optional[str] = None,
-    ) -> Event:
+    ) -> "Event":
         """Wait for a given record state."""
         assert self.controller.event_queue
         LOGGER.info(
