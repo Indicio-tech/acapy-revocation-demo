@@ -1,9 +1,14 @@
 from abc import ABC, abstractmethod
+import json
 from typing import Optional
 from aiohttp import ClientSession
 
 INDICIO_TESTNET_GENESIS = (
     "https://raw.githubusercontent.com/Indicio-tech/indicio-network/main/"
+    "genesis_files/pool_transactions_testnet_genesis"
+)
+INDICIO_TESTNET_GENESIS_OLD = (
+    "https://raw.githubusercontent.com/Indicio-tech/indicio-network/master/"
     "genesis_files/pool_transactions_testnet_genesis"
 )
 
@@ -15,6 +20,9 @@ def get_onboarder(genesis_url: str) -> Optional["Onboarder"]:
 
     return {
         INDICIO_TESTNET_GENESIS: SelfServeOnboarder(
+            "https://selfserve.indiciotech.io/nym", "testnet"
+        ),
+        INDICIO_TESTNET_GENESIS_OLD: SelfServeOnboarder(
             "https://selfserve.indiciotech.io/nym", "testnet"
         ),
     }.get(genesis_url)
@@ -64,4 +72,8 @@ class SelfServeOnboarder(Onboarder):
                 },
             ) as resp:
                 if resp.ok:
-                    return await resp.json()
+                    body = await resp.text()
+                    try:
+                        return json.loads(body)
+                    except json.decoder.JSONDecodeError:
+                        return None

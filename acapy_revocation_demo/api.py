@@ -6,9 +6,11 @@ from typing import (
     Coroutine,
     Dict,
     Generic,
+    List,
     ParamSpec,
     Protocol,
     TypeVar,
+    Union,
     cast,
 )
 
@@ -29,7 +31,18 @@ class ResultProtocol(Protocol):
 
 
 ApiParams = ParamSpec("ApiParams")
-ApiResult = TypeVar("ApiResult", bound=ResultProtocol)
+ApiResult = TypeVar("ApiResult", bound=Union[List[ResultProtocol], ResultProtocol])
+
+
+def _serialize(
+    value: Union[List[ResultProtocol], ResultProtocol, None]
+) -> Union[Dict, List, None]:
+    """Serialize result."""
+    if value is None:
+        return value
+    if isinstance(value, List):
+        return [res.to_dict() for res in value]
+    return value.to_dict()
 
 
 class Api(Generic[ApiParams, ApiResult]):
@@ -62,7 +75,7 @@ class Api(Generic[ApiParams, ApiResult]):
             LOGGER.info(
                 "Response: %s",
                 json.dumps(
-                    result.parsed.to_dict() if result.parsed else {},
+                    _serialize(result.parsed),
                     indent=2,
                     sort_keys=True,
                 ),

@@ -1,16 +1,20 @@
 """A set of scenarios to be executed by the demo scripts."""
 
+import logging
 from os import getenv
+import sys
 import random
 import string
 import asyncio
 from typing import Optional
+from colored import attr
 
 from .controller import Controller, Connection
 
 ISSUER = getenv("ISSUER", "http://host.docker.internal:8021")
 VERIFIER = getenv("VERIFIER", "http://host.docker.internal:8031")
 HOLDER = getenv("HOLDER", "http://host.docker.internal:8041")
+LOG_LEVEL = getenv("LOG_LEVEL", "debug")
 
 
 def random_string(size):
@@ -40,8 +44,6 @@ async def connected(lhs: Controller, rhs: Controller):
         await lhs_conn.active()
         await rhs_conn.active()
 
-        print(f"{lhs.name} connection id: {lhs_conn.connection_id}")
-        print(f"{rhs.name} connection id: {rhs_conn.connection_id}")
         return lhs_conn, rhs_conn
 
 
@@ -88,7 +90,7 @@ async def issued_credential(
             attr1="test1",
             attr2="test2",
         )
-        holder_cred_ex = await holder.get_received_cred_ex()
+        holder_cred_ex = await holder.receive_cred_ex()
         assert holder_cred_ex.record.state == "offer_received"
         await holder_cred_ex.send_request()
         await issuer_cred_ex.request_received()
@@ -114,10 +116,57 @@ async def revoked_credential(issuer: Connection, holder: Connection):
         await holder_cred_ex.receive_revocation_notification()
 
 
+async def presented_proof(verifier: Connection, holder: Connection):
+    """Proof presented to verifier from holder."""
+    async with verifier.controller.listening(), holder.controller.listening():
+        holder.controller.clear_events()
+        verifier.controller.clear_events()
+        verifier_pres = await verifier.request_presentation(
+            requested_attributes=[{"name": "attr0"}]
+        )
+        holder_pres = await holder.receive_pres_ex()
+        relevant_creds = await holder_pres.fetch_relevant_credentials()
+        pres_spec = await holder_pres.auto_prepare_presentation(relevant_creds)
+        await holder_pres.send_presentation(pres_spec)
+
+        await verifier_pres.presentation_received()
+        await verifier_pres.verify_presentation()
+        await verifier_pres.verified()
+        await holder_pres.presentation_acked()
+
+        print(holder_pres.summary())
+        print(verifier_pres.summary())
+
+
+class ColorFormatter(logging.Formatter):
+    def __init__(self, fmt: str):
+        self.default = logging.Formatter(fmt)
+        self.formats = {
+            logging.DEBUG: logging.Formatter(f'{attr("dim")}{fmt}{attr("reset")}'),
+        }
+
+    def format(self, record):
+        formatter = self.formats.get(record.levelno, self.default)
+        return formatter.format(record)
+
+
 async def main():
+    if sys.stdout.isatty():
+        logger = logging.getLogger("acapy_revocation_demo")
+        logger.setLevel(LOG_LEVEL.upper())
+        ch = logging.StreamHandler()
+        ch.setLevel(LOG_LEVEL.upper())
+        ch.setFormatter(ColorFormatter("%(message)s"))
+        logger.addHandler(ch)
+    else:
+        logging.basicConfig(
+            stream=sys.stdout, level=LOG_LEVEL.upper(), format="%(message)s"
+        )
+
     issuer, holder = await connected_issuer_holder()
-    await connected_verifier_holder()
-    await revoked_credential(issuer, holder)
+    verifier, holder_v = await connected_verifier_holder()
+    await issued_credential(issuer, holder)
+    await presented_proof(verifier, holder_v)
 
 
 if __name__ == "__main__":
