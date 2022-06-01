@@ -4,7 +4,8 @@ from os import getenv
 import random
 import string
 import asyncio
-from typing import Optional
+import time
+from typing import NamedTuple, Optional
 
 from . import Controller, Connection, logging_to_stdout
 
@@ -18,6 +19,16 @@ def random_string(size):
     return "".join(
         random.choice(string.ascii_letters + string.digits) for _ in range(size)
     )
+
+
+class IssuerHolder(NamedTuple):
+    issuer: Connection
+    holder: Connection
+
+
+class VerifierHolder(NamedTuple):
+    verifier: Connection
+    holder: Connection
 
 
 async def connected(lhs: Controller, rhs: Controller):
@@ -110,10 +121,13 @@ async def revoked_credential(issuer: Connection, holder: Connection):
         holder.controller.clear_events()
         await issuer.controller.publish_revocations()
         await holder_cred_ex.receive_revocation_notification()
+        return issuer_cred_ex, holder_cred_ex
 
 
-async def presented_proof(verifier: Connection, holder: Connection):
+async def presented_proof(issuer_holder: IssuerHolder, verifier_holder: VerifierHolder):
     """Proof presented to verifier from holder."""
+    await issued_credential(*issuer_holder)
+    verifier, holder = verifier_holder
     async with verifier.controller.listening(), holder.controller.listening():
         holder.controller.clear_events()
         verifier.controller.clear_events()
@@ -134,13 +148,49 @@ async def presented_proof(verifier: Connection, holder: Connection):
         print(verifier_pres.summary())
 
 
+async def present_revoked_credential(
+    issuer_holder: IssuerHolder, verifier_holder: VerifierHolder
+):
+    """Present a credential that has been revoked."""
+    issuer_cred_ex, _ = await revoked_credential(*issuer_holder)
+    verifier, holder = verifier_holder
+    async with verifier.controller.listening(), holder.controller.listening():
+        holder.controller.clear_events()
+        verifier.controller.clear_events()
+        now = int(time.time())
+        verifier_pres = await verifier.request_presentation(
+            requested_attributes=[
+                {
+                    "name": "attr0",
+                    "restrictions": [
+                        {"cred_def_id": issuer_cred_ex.record.credential_definition_id}
+                    ],
+                }
+            ],
+            non_revoked={"from": now, "to": now},
+        )
+        holder_pres = await holder.receive_pres_ex()
+        relevant_creds = await holder_pres.fetch_relevant_credentials()
+        pres_spec = await holder_pres.auto_prepare_presentation(relevant_creds)
+        await holder_pres.send_presentation(pres_spec)
+
+        await verifier_pres.presentation_received()
+        await verifier_pres.verify_presentation()
+        await verifier_pres.verified()
+        await holder_pres.presentation_acked()
+
+        print(holder_pres.summary())
+        print(verifier_pres.summary())
+
+
 async def main():
     logging_to_stdout()
 
-    issuer, holder = await connected_issuer_holder()
-    verifier, holder_v = await connected_verifier_holder()
-    await issued_credential(issuer, holder)
-    await presented_proof(verifier, holder_v)
+    issuer_holder = await connected_issuer_holder()
+    verifier_holder = await connected_verifier_holder()
+    await present_revoked_credential(
+        IssuerHolder(*issuer_holder), VerifierHolder(*verifier_holder)
+    )
 
 
 if __name__ == "__main__":
