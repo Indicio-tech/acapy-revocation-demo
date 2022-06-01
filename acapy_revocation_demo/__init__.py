@@ -38,8 +38,9 @@ def logging_to_stdout():
         logger.addHandler(ch)
     else:
         logging.basicConfig(
-            stream=sys.stdout, level=LOG_LEVEL.upper(), format="%(message)s"
+            stream=sys.stdout, level=logging.WARNING, format="%(message)s"
         )
+        logging.getLogger("acapy_revocation_demo").setLevel(LOG_LEVEL.upper())
 
 
 __all__ = [
