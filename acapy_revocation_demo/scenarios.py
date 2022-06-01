@@ -7,7 +7,7 @@ import asyncio
 import time
 from typing import NamedTuple, Optional
 
-from . import Controller, Connection, logging_to_stdout
+from . import Controller, Connection, logging_to_stdout, flows
 
 ISSUER = getenv("ISSUER", "http://host.docker.internal:8021")
 VERIFIER = getenv("VERIFIER", "http://host.docker.internal:8031")
@@ -33,25 +33,7 @@ class VerifierHolder(NamedTuple):
 
 async def connected(lhs: Controller, rhs: Controller):
     """Connect two agents."""
-    async with lhs.listening(), rhs.listening():
-        lhs_conn, invite = await lhs.create_invitation()
-        lhs.clear_events()
-
-        rhs_conn = await rhs.receive_invitation(invite, auto_accept=False)
-
-        await rhs_conn.accept_invitation()
-        rhs.clear_events()
-
-        await lhs_conn.request_received()
-        await lhs_conn.accept_request()
-
-        await rhs_conn.response_received()
-        await rhs_conn.send_trust_ping()
-
-        await lhs_conn.active()
-        await rhs_conn.active()
-
-        return lhs_conn, rhs_conn
+    return await flows.connect((lhs, rhs))
 
 
 async def connected_issuer_holder(
@@ -86,101 +68,64 @@ async def issued_credential(
     issuer: Connection, holder: Connection, *, revocable: bool = False
 ):
     """Issue credential to holder."""
-
-    async with issuer.controller.listening(), holder.controller.listening():
-        _, cred_def_id = await prepare_ledger_artifacts(
-            issuer.controller, revocable=revocable
-        )
-        issuer_cred_ex = await issuer.issue_credential(
-            cred_def_id,
-            attr0="test0",
-            attr1="test1",
-            attr2="test2",
-        )
-        holder_cred_ex = await holder.receive_cred_ex()
-        assert holder_cred_ex.record.state == "offer_received"
-        await holder_cred_ex.send_request()
-        await issuer_cred_ex.request_received()
-        # Issuer automatically issues
-        await holder_cred_ex.credential_received()
-        await holder_cred_ex.store()
-        await issuer_cred_ex.credential_acked()
-        await holder_cred_ex.credential_acked()
-        print(issuer_cred_ex.summary())
-        print(holder_cred_ex.summary())
-        return issuer_cred_ex, holder_cred_ex
+    _, cred_def_id = await prepare_ledger_artifacts(
+        issuer.controller, revocable=revocable
+    )
+    return await flows.issue_credential(
+        (issuer, holder),
+        cred_def_id=cred_def_id,
+        attr0="test0",
+        attr1="test1",
+        attr2="test2",
+    )
 
 
 async def revoked_credential(issuer: Connection, holder: Connection):
     issuer_cred_ex, holder_cred_ex = await issued_credential(
         issuer, holder, revocable=True
     )
-
-    async with issuer.controller.listening(), holder.controller.listening():
-        await issuer_cred_ex.revoke(comment="revoked by demo script", publish=False)
-        holder.controller.clear_events()
-        await issuer.controller.publish_revocations()
-        await holder_cred_ex.receive_revocation_notification()
-        return issuer_cred_ex, holder_cred_ex
+    return await flows.revoke_credential(
+        (issuer_cred_ex, holder_cred_ex), comment="revoked by demo script", publish=True
+    )
 
 
-async def presented_proof(issuer_holder: IssuerHolder, verifier_holder: VerifierHolder):
+async def presented_proof(
+    issuer_holder: flows.ConnectedPair, verifier_holder: flows.ConnectedPair
+):
     """Proof presented to verifier from holder."""
     await issued_credential(*issuer_holder)
-    verifier, holder = verifier_holder
-    async with verifier.controller.listening(), holder.controller.listening():
-        holder.controller.clear_events()
-        verifier.controller.clear_events()
-        verifier_pres = await verifier.request_presentation(
-            requested_attributes=[{"name": "attr0"}]
-        )
-        holder_pres = await holder.receive_pres_ex()
-        relevant_creds = await holder_pres.fetch_relevant_credentials()
-        pres_spec = await holder_pres.auto_prepare_presentation(relevant_creds)
-        await holder_pres.send_presentation(pres_spec)
+    pres_exes = await flows.present_proof(
+        verifier_holder, requested_attributes=[{"name": "attr0"}]
+    )
+    for pres_ex in pres_exes:
+        print(pres_ex.summary())
 
-        await verifier_pres.presentation_received()
-        await verifier_pres.verify_presentation()
-        await verifier_pres.verified()
-        await holder_pres.presentation_acked()
-
-        print(holder_pres.summary())
-        print(verifier_pres.summary())
+    return pres_exes
 
 
 async def present_revoked_credential(
-    issuer_holder: IssuerHolder, verifier_holder: VerifierHolder
+    issuer_holder: flows.ConnectedPair, verifier_holder: flows.ConnectedPair
 ):
     """Present a credential that has been revoked."""
     issuer_cred_ex, _ = await revoked_credential(*issuer_holder)
-    verifier, holder = verifier_holder
-    async with verifier.controller.listening(), holder.controller.listening():
-        holder.controller.clear_events()
-        verifier.controller.clear_events()
-        now = int(time.time())
-        verifier_pres = await verifier.request_presentation(
-            requested_attributes=[
-                {
-                    "name": "attr0",
-                    "restrictions": [
-                        {"cred_def_id": issuer_cred_ex.record.credential_definition_id}
-                    ],
-                }
-            ],
-            non_revoked={"from": now, "to": now},
-        )
-        holder_pres = await holder.receive_pres_ex()
-        relevant_creds = await holder_pres.fetch_relevant_credentials()
-        pres_spec = await holder_pres.auto_prepare_presentation(relevant_creds)
-        await holder_pres.send_presentation(pres_spec)
+    now = int(time.time())
+    pres_exes = await flows.present_proof(
+        verifier_holder,
+        comment="presentation after revocation",
+        requested_attributes=[
+            {
+                "name": "attr0",
+                "restrictions": [
+                    {"cred_def_id": issuer_cred_ex.record.credential_definition_id}
+                ],
+            }
+        ],
+        non_revoked={"from": now, "to": now},
+    )
+    for pres_ex in pres_exes:
+        print(pres_ex.summary())
 
-        await verifier_pres.presentation_received()
-        await verifier_pres.verify_presentation()
-        await verifier_pres.verified()
-        await holder_pres.presentation_acked()
-
-        print(holder_pres.summary())
-        print(verifier_pres.summary())
+    return pres_exes
 
 
 async def main():
@@ -188,9 +133,7 @@ async def main():
 
     issuer_holder = await connected_issuer_holder()
     verifier_holder = await connected_verifier_holder()
-    await present_revoked_credential(
-        IssuerHolder(*issuer_holder), VerifierHolder(*verifier_holder)
-    )
+    await present_revoked_credential(issuer_holder, verifier_holder)
 
 
 if __name__ == "__main__":

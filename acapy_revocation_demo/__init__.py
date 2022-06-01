@@ -9,6 +9,7 @@ from .controller.connection import Connection
 from .controller.controller import Controller
 from .controller.credential_exchange import CredentialExchange
 from .controller.presentation_exchange import PresentationExchange
+from .controller import flows
 
 
 LOG_LEVEL = getenv("LOG_LEVEL", "debug")
@@ -46,4 +47,5 @@ __all__ = [
     "Connection",
     "PresentationExchange",
     "CredentialExchange",
+    "flows",
 ]

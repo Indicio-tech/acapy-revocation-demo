@@ -55,6 +55,9 @@ class Record(Generic[RecordType]):
         """Condition for matching states to this record."""
         return True
 
+    def listening(self):
+        return self.controller.listening()
+
     async def wait_for_state(
         self,
         state: str,
