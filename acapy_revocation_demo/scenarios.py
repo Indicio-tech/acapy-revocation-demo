@@ -9,7 +9,7 @@ import asyncio
 from typing import Optional
 from colored import attr
 
-from .controller import Controller, Connection
+from . import Controller, Connection
 
 ISSUER = getenv("ISSUER", "http://host.docker.internal:8021")
 VERIFIER = getenv("VERIFIER", "http://host.docker.internal:8031")
