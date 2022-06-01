@@ -61,7 +61,7 @@ class PresentationExchange(Record[V10PresentationExchange]):
             == self.presentation_exchange_id
         )
 
-    def summary(self):
+    def summary(self) -> str:
         comment = unwrap_or(unwrap(self.record.presentation_request_dict).comment, None)
         return f"{self.name} Summary: " + json.dumps(
             {

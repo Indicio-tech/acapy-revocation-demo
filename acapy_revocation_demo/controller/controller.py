@@ -21,6 +21,10 @@ from acapy_client.api.issue_credential_v1_0 import (
     get_issue_credential_records as _get_cred_ex_records,
     get_issue_credential_records_cred_ex_id as _get_cred_ex_record,
 )
+from acapy_client.api.present_proof_v1_0 import (
+    get_present_proof_records as _get_pres_ex_records,
+    get_present_proof_records_pres_ex_id as _get_pres_ex_record,
+)
 from acapy_client.api.ledger import accept_taa as _accept_taa, fetch_taa as _fetch_taa
 from acapy_client.api.revocation import (
     publish_revocations as _publish_revocations,
@@ -60,9 +64,6 @@ from acapy_client.models.txn_or_credential_definition_send_result import (
     TxnOrCredentialDefinitionSendResult,
 )
 from acapy_client.models.txn_or_schema_send_result import TxnOrSchemaSendResult
-from acapy_client.models.v10_credential_exchange_list_result import (
-    V10CredentialExchangeListResult,
-)
 from acapy_client.types import Response, UNSET, Unset
 from aiohttp import ClientSession
 import aiohttp
@@ -74,7 +75,8 @@ from .onboarding import get_onboarder
 from .queue import Queue
 from .connection import Connection
 from .credential_exchange import CredentialExchange
-from .utils import unwrap
+from .presentation_exchange import PresentationExchange
+from .utils import unwrap, unwrap_or
 
 
 LOGGER = logging.getLogger(__name__)
@@ -90,6 +92,8 @@ class Event(NamedTuple):
 
     def __str__(self) -> str:
         payload = json.dumps(self.payload, sort_keys=True, indent=2)
+        if len(payload) > 1000:
+            payload = json.dumps(self.payload, sort_keys=True)
         return f'Event(topic="{self.topic}", payload={payload})'
 
 
@@ -212,7 +216,7 @@ class Controller:
         )
 
     async def publish_schema(
-        self, schema_name: str, schema_version: str, attrs: List[str]
+        self, schema_name: str, schema_version: str, attributes: List[str]
     ) -> str:
         publish_schema = Api(
             self.name, _publish_schema._get_kwargs, _publish_schema.asyncio_detailed
@@ -222,7 +226,7 @@ class Controller:
             json_body=SchemaSendRequest(
                 schema_name=schema_name,
                 schema_version=schema_version,
-                attributes=attrs,
+                attributes=attributes,
             ),
         )
         if isinstance(result, SchemaSendResult):
@@ -258,13 +262,22 @@ class Controller:
         assert isinstance(result, TxnOrCredentialDefinitionSendResult)
         return unwrap(result.sent).credential_definition_id
 
-    async def get_cred_ex_records(self) -> V10CredentialExchangeListResult:
+    async def get_cred_ex_records(self) -> List[CredentialExchange]:
         get_cred_ex_records = Api(
             self.name,
             _get_cred_ex_records._get_kwargs,
             _get_cred_ex_records.asyncio_detailed,
         )
-        return await get_cred_ex_records(client=self.client)
+        result = await get_cred_ex_records(client=self.client)
+        return [
+            CredentialExchange(
+                self,
+                unwrap(record.connection_id),
+                unwrap(record.credential_exchange_id),
+                record,
+            )
+            for record in unwrap_or(result.results) or []
+        ]
 
     async def get_cred_ex_record(self, cred_ex_id: str) -> CredentialExchange:
         get_cred_ex_record = Api(
@@ -277,6 +290,37 @@ class Controller:
             self,
             unwrap(result.connection_id),
             unwrap(result.credential_exchange_id),
+            result,
+        )
+
+    async def get_pres_ex_records(self) -> List[PresentationExchange]:
+        get_pres_ex_records = Api(
+            self.name,
+            _get_pres_ex_records._get_kwargs,
+            _get_pres_ex_records.asyncio_detailed,
+        )
+        result = await get_pres_ex_records(client=self.client)
+        return [
+            PresentationExchange(
+                self,
+                unwrap(record.connection_id),
+                unwrap(record.presentation_exchange_id),
+                record,
+            )
+            for record in unwrap_or(result.results) or []
+        ]
+
+    async def get_pres_ex_record(self, pres_ex_id: str) -> PresentationExchange:
+        get_pres_ex_record = Api(
+            self.name,
+            _get_pres_ex_record._get_kwargs,
+            _get_pres_ex_record.asyncio_detailed,
+        )
+        result = await get_pres_ex_record(pres_ex_id, client=self.client)
+        return PresentationExchange(
+            self,
+            unwrap(result.connection_id),
+            unwrap(result.presentation_exchange_id),
             result,
         )
 

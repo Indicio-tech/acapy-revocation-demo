@@ -1,4 +1,5 @@
 """Interface for interacting with an agent."""
+import asyncio
 from dataclasses import dataclass
 import json
 import logging
@@ -148,8 +149,17 @@ class CredentialExchange(Record[V10CredentialExchange]):
     async def receive_revocation_notification(self) -> RevocationNotification:
         assert self.controller.event_queue
         LOGGER.info("%s awaiting notification of revocation...", self.name)
-        event = await self.controller.event_queue.get(
-            lambda event: event.topic == "revocation-notification"
-        )
-        LOGGER.debug("%s: received event: %s", event)
+        try:
+            event = await self.controller.event_queue.get(
+                lambda event: event.topic == "revocation-notification"
+            )
+        except asyncio.TimeoutError:
+            LOGGER.error(
+                "Waiting for revocation notification timed out! "
+                "Is --monitor-revocation-notification enabled on the holder? "
+                "Is --notify-revocation enabled on the issuer?"
+            )
+            raise
+
+        LOGGER.debug("%s: received event: %s", self.name, event)
         return RevocationNotification()

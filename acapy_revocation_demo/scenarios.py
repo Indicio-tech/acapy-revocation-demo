@@ -1,20 +1,16 @@
 """A set of scenarios to be executed by the demo scripts."""
 
-import logging
 from os import getenv
-import sys
 import random
 import string
 import asyncio
 from typing import Optional
-from colored import attr
 
-from . import Controller, Connection
+from . import Controller, Connection, logging_to_stdout
 
 ISSUER = getenv("ISSUER", "http://host.docker.internal:8021")
 VERIFIER = getenv("VERIFIER", "http://host.docker.internal:8031")
 HOLDER = getenv("HOLDER", "http://host.docker.internal:8041")
-LOG_LEVEL = getenv("LOG_LEVEL", "debug")
 
 
 def random_string(size):
@@ -138,30 +134,8 @@ async def presented_proof(verifier: Connection, holder: Connection):
         print(verifier_pres.summary())
 
 
-class ColorFormatter(logging.Formatter):
-    def __init__(self, fmt: str):
-        self.default = logging.Formatter(fmt)
-        self.formats = {
-            logging.DEBUG: logging.Formatter(f'{attr("dim")}{fmt}{attr("reset")}'),
-        }
-
-    def format(self, record):
-        formatter = self.formats.get(record.levelno, self.default)
-        return formatter.format(record)
-
-
 async def main():
-    if sys.stdout.isatty():
-        logger = logging.getLogger("acapy_revocation_demo")
-        logger.setLevel(LOG_LEVEL.upper())
-        ch = logging.StreamHandler()
-        ch.setLevel(LOG_LEVEL.upper())
-        ch.setFormatter(ColorFormatter("%(message)s"))
-        logger.addHandler(ch)
-    else:
-        logging.basicConfig(
-            stream=sys.stdout, level=LOG_LEVEL.upper(), format="%(message)s"
-        )
+    logging_to_stdout()
 
     issuer, holder = await connected_issuer_holder()
     verifier, holder_v = await connected_verifier_holder()

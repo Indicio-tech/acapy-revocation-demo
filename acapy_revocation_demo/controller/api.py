@@ -72,14 +72,11 @@ class Api(Generic[ApiParams, ApiResult]):
         )
         result: Response = await self.api(*args, **kwargs)
         if result.status_code == 200:
-            LOGGER.info(
-                "Response: %s",
-                json.dumps(
-                    _serialize(result.parsed),
-                    indent=2,
-                    sort_keys=True,
-                ),
-            )
+            serialized = _serialize(result.parsed)
+            response_out = json.dumps(serialized, indent=2, sort_keys=True)
+            if response_out.count("\n") > 30:
+                response_out = json.dumps(serialized, sort_keys=True)
+            LOGGER.info("Response: %s", response_out)
         else:
             raise ApiError("Request failed!", result.status_code, result.content)
 

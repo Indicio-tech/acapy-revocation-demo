@@ -57,7 +57,10 @@ class Queue(Generic[QueueEntry]):
         timeout: int = 5,
     ) -> QueueEntry:
         """Retrieve a message from the queue."""
-        return await asyncio.wait_for(self._get(condition), timeout)
+        try:
+            return await asyncio.wait_for(self._get(condition), timeout)
+        except asyncio.TimeoutError:
+            raise asyncio.TimeoutError("Retrieval from queue timed out") from None
 
     def get_all(
         self, condition: Optional[Callable[[QueueEntry], bool]] = None

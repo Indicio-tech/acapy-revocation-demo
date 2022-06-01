@@ -78,7 +78,7 @@ class Record(Generic[RecordType]):
         LOGGER.debug(
             "%s record state: %s",
             type(self).__name__,
-            json.dumps(event.payload, sort_keys=True, indent=2),
+            json.dumps(event.payload, sort_keys=True),
         )
         self.record = type(self.record).from_dict(event.payload)
         return event
