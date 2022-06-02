@@ -7,8 +7,7 @@ from os import getenv
 import sys
 import time
 
-from colorama import Style, Fore
-import colorama
+from blessings import Terminal
 
 from . import Controller, logging_to_stdout
 from .scenarios import connected
@@ -19,6 +18,8 @@ VERIFIER = getenv("VERIFIER", "http://localhost:3005")
 HOLDER = getenv("HOLDER", "http://localhost:3001")
 LOG_LEVEL = getenv("LOG_LEVEL", "debug")
 
+term = Terminal()
+
 
 @contextmanager
 def section(title: str):
@@ -26,7 +27,7 @@ def section(title: str):
         size = os.get_terminal_size()
         left = "=" * (int(size.columns / 2) - int((len(title) + 1) / 2))
         right = "=" * (size.columns - (len(left) + len(title) + 2))
-        print(f"{Fore.BLUE}{Style.BRIGHT}{left} {title} {right}")
+        print(f"{term.blue}{term.bold}{left} {title} {right}{term.normal}")
     else:
         print(title)
     yield
@@ -34,7 +35,6 @@ def section(title: str):
 
 async def main():
     """Run steps."""
-    colorama.init(autoreset=True)
     logging_to_stdout()
 
     issuer = Controller("issuer", ISSUER)

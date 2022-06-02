@@ -2,8 +2,8 @@ import logging
 from os import getenv
 import sys
 
-import colorama
-from colorama import Fore, Style
+
+from blessings import Terminal
 
 from .controller import flows
 from .controller.connection import Connection
@@ -18,9 +18,10 @@ LOG_LEVEL = getenv("LOG_LEVEL", "debug")
 class ColorFormatter(logging.Formatter):
     def __init__(self, fmt: str):
         self.default = logging.Formatter(fmt)
+        term = Terminal()
         self.formats = {
-            logging.DEBUG: logging.Formatter(f"{Style.DIM}{fmt}{Style.RESET_ALL}"),
-            logging.ERROR: logging.Formatter(f"{Fore.RED}{fmt}{Style.RESET_ALL}"),
+            logging.DEBUG: logging.Formatter(f"{term.dim}{fmt}{term.normal}"),
+            logging.ERROR: logging.Formatter(f"{term.red}{fmt}{term.normal}"),
         }
 
     def format(self, record):
@@ -29,7 +30,6 @@ class ColorFormatter(logging.Formatter):
 
 
 def logging_to_stdout():
-    colorama.init(autoreset=True)
     if sys.stdout.isatty():
         logger = logging.getLogger("acapy_revocation_demo")
         logger.setLevel(LOG_LEVEL.upper())
