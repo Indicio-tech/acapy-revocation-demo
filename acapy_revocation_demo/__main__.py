@@ -7,8 +7,8 @@ from os import getenv
 import sys
 import time
 
-import colored
-from colored import stylize
+from colorama import Style, Fore
+import colorama
 
 from . import Controller, logging_to_stdout
 from .scenarios import connected
@@ -26,11 +26,7 @@ def section(title: str):
         size = os.get_terminal_size()
         left = "=" * (int(size.columns / 2) - int((len(title) + 1) / 2))
         right = "=" * (size.columns - (len(left) + len(title) + 2))
-        print(
-            stylize(
-                f"{left} {title} {right}", colored.fg("blue") + colored.attr("bold")
-            )
-        )
+        print(f"{Fore.BLUE}{Style.BRIGHT}{left} {title} {right}")
     else:
         print(title)
     yield
@@ -38,6 +34,7 @@ def section(title: str):
 
 async def main():
     """Run steps."""
+    colorama.init(autoreset=True)
     logging_to_stdout()
 
     issuer = Controller("issuer", ISSUER)
