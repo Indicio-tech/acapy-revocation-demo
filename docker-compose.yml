@@ -18,22 +18,14 @@ services:
         --admin 0.0.0.0 3001
         --admin-insecure-mode
         --debug-connections
-        --auto-accept-invites
-        --auto-accept-requests
-        --auto-ping-connection
         --preserve-exchange-records
-        --auto-store-credential
-        --auto-respond-credential-proposal
-        --auto-respond-credential-offer
-        --auto-respond-credential-request
-        --auto-respond-presentation-proposal
-        --auto-respond-presentation-request
-        --auto-verify-presentation
         --wallet-type indy
         --wallet-name default
         --wallet-key insecure
         --log-level debug
         --auto-provision
+        --notify-revocation
+        --monitor-revocation-notification
     depends_on:
       - tails
       - webhook-listener
@@ -57,22 +49,45 @@ services:
         --admin 0.0.0.0 3001
         --admin-insecure-mode
         --debug-connections
-        --auto-accept-invites
-        --auto-accept-requests
-        --auto-ping-connection
         --preserve-exchange-records
-        --auto-store-credential
-        --auto-respond-credential-proposal
-        --auto-respond-credential-offer
-        --auto-respond-credential-request
-        --auto-respond-presentation-proposal
-        --auto-respond-presentation-request
-        --auto-verify-presentation
         --wallet-type indy
         --wallet-name default
         --wallet-key insecure
         --log-level debug
         --auto-provision
+        --notify-revocation
+        --monitor-revocation-notification
+    depends_on:
+      - tails
+      - webhook-listener
+
+  verifier:
+    image: bcgovimages/aries-cloudagent:py36-1.16-1_0.7.3
+    ports:
+      - 3004:3000
+      - 3005:3001
+    volumes:
+      - ./configs:/home/indy/configs:z
+    command: >
+      start
+        -e http://verifier:3000
+        --tails-server-base-url http://tails:6543
+        --webhook-url http://webhook-listener:8080
+        --label verifier
+        --inbound-transport http 0.0.0.0 3000
+        --outbound-transport http
+        --genesis-url https://raw.githubusercontent.com/Indicio-tech/indicio-network/master/genesis_files/pool_transactions_testnet_genesis
+        --admin 0.0.0.0 3001
+        --admin-insecure-mode
+        --debug-connections
+        --preserve-exchange-records
+        --wallet-type indy
+        --wallet-name default
+        --wallet-key insecure
+        --log-level debug
+        --auto-provision
+        --notify-revocation
+        --monitor-revocation-notification
     depends_on:
       - tails
       - webhook-listener
