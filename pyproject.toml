@@ -7,7 +7,7 @@ license = "Apache-2.0"
 
 [tool.poetry.dependencies]
 python = "^3.7"
-acapy-client = { git = "https://github.com/indicio-tech/acapy-client", rev = "0.7.3" }
+acapy-client = "0.7.3.post0"
 aiohttp = "^3.8.1"
 colored = "^1.4.3"
 
