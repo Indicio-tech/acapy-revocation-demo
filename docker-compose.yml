@@ -122,6 +122,7 @@ services:
       - WAIT_HOST_CONNECT_TIMEOUT=10
       - HOLDER=http://holder:3001
       - ISSUER=http://issuer:3001
+      - VERIFIER=http://issuer:3001
     depends_on:
       - holder
       - issuer
