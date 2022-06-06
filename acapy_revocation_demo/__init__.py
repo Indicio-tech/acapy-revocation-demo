@@ -13,6 +13,7 @@ from .controller.presentation_exchange import PresentationExchange
 
 
 LOG_LEVEL = getenv("LOG_LEVEL", "debug")
+LOGGING_SET = False
 
 
 class ColorFormatter(logging.Formatter):
@@ -30,6 +31,10 @@ class ColorFormatter(logging.Formatter):
 
 
 def logging_to_stdout():
+    global LOGGING_SET
+    if LOGGING_SET:
+        return
+
     if sys.stdout.isatty():
         logger = logging.getLogger("acapy_revocation_demo")
         logger.setLevel(LOG_LEVEL.upper())
@@ -42,6 +47,8 @@ def logging_to_stdout():
             stream=sys.stdout, level=logging.WARNING, format="%(message)s"
         )
         logging.getLogger("acapy_revocation_demo").setLevel(LOG_LEVEL.upper())
+
+    LOGGING_SET = True
 
 
 __all__ = [
