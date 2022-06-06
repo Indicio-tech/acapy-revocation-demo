@@ -128,6 +128,17 @@ async def present_revoked_credential(
     return pres_exes
 
 
+async def revocation_demo(
+    issuer: Controller,
+    verifier: Controller,
+    holder: Controller,
+):
+    """Run through revocation demo."""
+    from .__main__ import main
+
+    await main(issuer, verifier, holder)
+
+
 async def main():
     logging_to_stdout()
 

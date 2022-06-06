@@ -6,6 +6,7 @@ import os
 from os import getenv
 import sys
 import time
+from typing import Optional
 
 from blessings import Terminal
 
@@ -33,12 +34,17 @@ def section(title: str):
     yield
 
 
-async def main():
+async def main(
+    issuer: Optional[Controller] = None,
+    verifier: Optional[Controller] = None,
+    holder: Optional[Controller] = None,
+):
     """Run steps."""
     logging_to_stdout()
 
-    issuer = Controller("issuer", ISSUER)
-    holder = Controller("holder", HOLDER)
+    issuer = issuer or Controller("issuer", ISSUER, long_timeout=30)
+    verifier = verifier or Controller("verifier", ISSUER)
+    holder = holder or Controller("holder", HOLDER)
 
     with section("Establish Connection"):
         issuer_conn, holder_conn = await connected(issuer, holder)
@@ -56,7 +62,7 @@ async def main():
 
     with section("Issue credential and request presentation"):
         async with issuer.listening(), holder.listening():
-            issuer_cred_ex = await issuer_conn.issue_credential(
+            issuer_cred_ex = await issuer_conn.send_credential_offer(
                 cred_def_id=cred_def_id,
                 firstname="Bob",
                 age="42",
@@ -64,6 +70,7 @@ async def main():
             holder_cred_ex = await holder_conn.receive_cred_ex()
             await holder_cred_ex.send_request()
             await issuer_cred_ex.request_received()
+            await issuer_cred_ex.issue()
             await holder_cred_ex.credential_received()
             await holder_cred_ex.store()
             await issuer_cred_ex.credential_acked()
@@ -183,7 +190,7 @@ async def main():
                         "name": "firstname",
                         "restrictions": [{"cred_def_id": cred_def_id}],
                         "non_revoked": {
-                            "from": before_revoking_time,
+                            "from": before_revoking_time - 1,
                             "to": before_revoking_time,
                         },
                     }

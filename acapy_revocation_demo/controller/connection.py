@@ -12,6 +12,7 @@ from acapy_client.api.connection import (
 from acapy_client.api.issue_credential_v1_0 import (
     issue_credential_automated as _issue_credential,
     get_issue_credential_records as _get_cred_ex_records,
+    post_issue_credential_send_offer as _send_credential_offer,
 )
 from acapy_client.api.present_proof_v1_0 import (
     send_proof_request as _send_proof_request,
@@ -39,6 +40,9 @@ from acapy_client.models.indy_proof_request_requested_predicates import (
 from acapy_client.models.invitation_result import InvitationResult
 from acapy_client.models.ping_request import PingRequest
 from acapy_client.models.v10_credential_exchange import V10CredentialExchange
+from acapy_client.models.v10_credential_free_offer_request import (
+    V10CredentialFreeOfferRequest,
+)
 from acapy_client.models.v10_credential_proposal_request_mand import (
     V10CredentialProposalRequestMand,
 )
@@ -149,9 +153,37 @@ class Connection(Record[Union[InvitationResult, ConnRecord]]):
             json_body=PingRequest(comment=comment),
         )
 
-    async def issue_credential(
+    async def send_credential_offer(
         self, cred_def_id: str, **attributes
     ) -> "CredentialExchange":
+        send_credential_offer = Api(
+            self.name,
+            _send_credential_offer._get_kwargs,
+            _send_credential_offer.asyncio_detailed,
+        )
+        result = await send_credential_offer(
+            client=self.client,
+            json_body=V10CredentialFreeOfferRequest(
+                connection_id=self.connection_id,
+                cred_def_id=cred_def_id,
+                credential_preview=CredentialPreview(
+                    attributes=[
+                        CredAttrSpec(name, value) for name, value in attributes.items()
+                    ]
+                ),
+            ),
+        )
+        return CredentialExchange(
+            self.controller,
+            self.connection_id,
+            unwrap(result.credential_exchange_id),
+            result,
+        )
+
+    async def issue_credential_auto(
+        self, cred_def_id: str, **attributes
+    ) -> "CredentialExchange":
+        """Automated credential issuance."""
         issue_credential = Api(
             self.name, _issue_credential._get_kwargs, _issue_credential.asyncio_detailed
         )
@@ -182,9 +214,9 @@ class Connection(Record[Union[InvitationResult, ConnRecord]]):
             and event.payload["connection_id"] == self.connection_id,
             timeout=3,
         )
-        LOGGER.info(
+        LOGGER.debug(
             "CredentialExchange record from event: %s",
-            json.dumps(event.payload, sort_keys=True, indent=2),
+            json.dumps(event.payload, sort_keys=True),
         )
         return CredentialExchange(
             self.controller,
@@ -244,9 +276,9 @@ class Connection(Record[Union[InvitationResult, ConnRecord]]):
             and event.payload["connection_id"] == self.connection_id,
             timeout=3,
         )
-        LOGGER.info(
+        LOGGER.debug(
             "PresentationExchange record from event: %s",
-            json.dumps(event.payload, sort_keys=True, indent=2),
+            json.dumps(event.payload, sort_keys=True),
         )
         return PresentationExchange(
             self.controller,

@@ -9,10 +9,12 @@ from acapy_client.api.issue_credential_v1_0 import (
     post_issue_credential_records_cred_ex_id_problem_report as _cred_ex_problem_report,
     post_issue_credential_records_cred_ex_id_send_request as _issue_cred_send_request,
     post_issue_credential_records_cred_ex_id_store as _issue_cred_store,
+    post_issue_credential_records_cred_ex_id_issue as _issue_cred_issue,
 )
 from acapy_client.api.revocation import revoke_credential as _revoke_credential
 from acapy_client.models.revoke_request import RevokeRequest
 from acapy_client.models.v10_credential_exchange import V10CredentialExchange
+from acapy_client.models.v10_credential_issue_request import V10CredentialIssueRequest
 from acapy_client.models.v10_credential_problem_report_request import (
     V10CredentialProblemReportRequest,
 )
@@ -105,6 +107,17 @@ class CredentialExchange(Record[V10CredentialExchange]):
             _issue_cred_send_request.asyncio_detailed,
         )
         result = await send_request(self.credential_exchange_id, client=self.client)
+        self.record = result
+
+    async def issue(self):
+        issue = Api(
+            self.name, _issue_cred_issue._get_kwargs, _issue_cred_issue.asyncio_detailed
+        )
+        result = await issue(
+            self.credential_exchange_id,
+            client=self.client,
+            json_body=V10CredentialIssueRequest(),
+        )
         self.record = result
 
     async def store(self):

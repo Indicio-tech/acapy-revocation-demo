@@ -100,12 +100,21 @@ class Event(NamedTuple):
 class Controller:
     """Interface for interacting with an agent."""
 
-    def __init__(self, name: str, base_url: str, *, headers: Optional[dict] = None):
+    def __init__(
+        self,
+        name: str,
+        base_url: str,
+        *,
+        headers: Optional[dict] = None,
+        timeout: float = 5.0,
+        long_timeout: float = 15.0,
+    ):
         self.name = name
         self.client = Client(
-            base_url=base_url, headers=headers or {}, timeout=5.0, verify_ssl=True
+            base_url=base_url, headers=headers or {}, timeout=timeout, verify_ssl=True
         )
 
+        self.long_timeout = long_timeout
         self.event_queue: Optional[Queue[Event]] = None
         self._ws_task: Optional[asyncio.Task] = None
         self._ws: Optional[aiohttp.ClientWebSocketResponse] = None
@@ -248,7 +257,7 @@ class Controller:
             self.name, _publish_cred_def._get_kwargs, _publish_cred_def.asyncio_detailed
         )
         result = await publish_cred_def(
-            client=self.client.with_timeout(30.0),
+            client=self.client.with_timeout(self.long_timeout),
             json_body=CredentialDefinitionSendRequest(
                 schema_id=schema_id,
                 revocation_registry_size=revocation_registry_size or UNSET,

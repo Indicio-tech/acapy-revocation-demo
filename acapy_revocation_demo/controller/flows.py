@@ -39,12 +39,12 @@ async def connect(pair: Pair):
 async def issue_credential(pair: ConnectedPair, *, cred_def_id: str, **attributes):
     issuer, holder = pair
     async with issuer.listening(), holder.listening():
-        issuer_cred_ex = await issuer.issue_credential(cred_def_id, **attributes)
+        issuer_cred_ex = await issuer.send_credential_offer(cred_def_id, **attributes)
         holder_cred_ex = await holder.receive_cred_ex()
         assert holder_cred_ex.record.state == "offer_received"
         await holder_cred_ex.send_request()
         await issuer_cred_ex.request_received()
-        # Issuer automatically issues
+        await issuer_cred_ex.issue()
         await holder_cred_ex.credential_received()
         await holder_cred_ex.store()
         await issuer_cred_ex.credential_acked()
