@@ -11,7 +11,7 @@ from typing import Optional
 from blessings import Terminal
 
 from . import Controller, logging_to_stdout
-from .scenarios import connected
+from .scenarios import connected, random_string
 
 
 ISSUER = getenv("ISSUER", "http://localhost:3003")
@@ -43,11 +43,12 @@ async def main(
     logging_to_stdout()
 
     issuer = issuer or Controller("issuer", ISSUER, long_timeout=30)
-    verifier = verifier or Controller("verifier", ISSUER)
+    verifier = verifier or Controller("verifier", VERIFIER)
     holder = holder or Controller("holder", HOLDER)
 
     with section("Establish Connection"):
         issuer_conn, holder_conn = await connected(issuer, holder)
+        verifier_conn, vholder_conn = await connected(verifier, holder)
 
     with section("Prepare for writing to the ledger"):
         await issuer.onboard()
@@ -58,7 +59,9 @@ async def main(
             schema_name="revocation_testing",
             schema_version="0.1.0",
         )
-        cred_def_id = await issuer.publish_cred_def(schema_id, support_revocation=True)
+        cred_def_id = await issuer.publish_cred_def(
+            schema_id, tag=random_string(5), support_revocation=True
+        )
 
     with section("Issue credential and request presentation"):
         async with issuer.listening(), holder.listening():
@@ -77,8 +80,8 @@ async def main(
             await holder_cred_ex.credential_acked()
 
         non_revoked_time = int(time.time())
-        async with issuer.listening(), holder.listening():
-            issuer_pres = await issuer_conn.request_presentation(
+        async with verifier.listening(), holder.listening():
+            verifier_pres = await verifier_conn.request_presentation(
                 comment="Before revocation (should verify true)",
                 requested_attributes=[
                     {
@@ -88,14 +91,14 @@ async def main(
                 ],
                 non_revoked={"from": non_revoked_time, "to": non_revoked_time},
             )
-            holder_pres = await holder_conn.receive_pres_ex()
+            holder_pres = await vholder_conn.receive_pres_ex()
             relevant_creds = await holder_pres.fetch_relevant_credentials()
             pres_spec = await holder_pres.auto_prepare_presentation(relevant_creds)
             await holder_pres.send_presentation(pres_spec)
 
-            await issuer_pres.presentation_received()
-            await issuer_pres.verify_presentation()
-            await issuer_pres.verified()
+            await verifier_pres.presentation_received()
+            await verifier_pres.verify_presentation()
+            await verifier_pres.verified()
             await holder_pres.presentation_acked()
 
     with section("Revoke credential"):
@@ -108,9 +111,9 @@ async def main(
 
     with section("Request proof from holder again after revoking"):
         before_revoking_time = non_revoked_time
-        async with issuer.listening(), holder.listening():
+        async with verifier.listening(), holder.listening():
             non_revoked_time = int(time.time())
-            issuer_pres = await issuer_conn.request_presentation(
+            verifier_pres = await verifier_conn.request_presentation(
                 comment="After revoking (should verify false)",
                 requested_attributes=[
                     {
@@ -120,21 +123,21 @@ async def main(
                 ],
                 non_revoked={"from": non_revoked_time - 1, "to": non_revoked_time},
             )
-            holder_pres = await holder_conn.receive_pres_ex()
+            holder_pres = await vholder_conn.receive_pres_ex()
             relevant_creds = await holder_pres.fetch_relevant_credentials()
             pres_spec = await holder_pres.auto_prepare_presentation(relevant_creds)
             await holder_pres.send_presentation(pres_spec)
 
-            await issuer_pres.presentation_received()
-            await issuer_pres.verify_presentation()
-            await issuer_pres.verified()
+            await verifier_pres.presentation_received()
+            await verifier_pres.verify_presentation()
+            await verifier_pres.verified()
             await holder_pres.presentation_acked()
 
     with section(
         "Attempt another proof with non_revoked interval to before revocation"
     ):
-        async with issuer.listening(), holder.listening():
-            issuer_pres = await issuer_conn.request_presentation(
+        async with verifier.listening(), holder.listening():
+            verifier_pres = await verifier_conn.request_presentation(
                 comment="After revoking, interval before revocation (should verify true)",
                 requested_attributes=[
                     {
@@ -144,19 +147,19 @@ async def main(
                 ],
                 non_revoked={"from": before_revoking_time, "to": before_revoking_time},
             )
-            holder_pres = await holder_conn.receive_pres_ex()
+            holder_pres = await vholder_conn.receive_pres_ex()
             relevant_creds = await holder_pres.fetch_relevant_credentials()
             pres_spec = await holder_pres.auto_prepare_presentation(relevant_creds)
             await holder_pres.send_presentation(pres_spec)
 
-            await issuer_pres.presentation_received()
-            await issuer_pres.verify_presentation()
-            await issuer_pres.verified()
+            await verifier_pres.presentation_received()
+            await verifier_pres.verify_presentation()
+            await verifier_pres.verified()
             await holder_pres.presentation_acked()
 
     with section("Attempt another proof with no non_revoked interval"):
-        async with issuer.listening(), holder.listening():
-            issuer_pres = await issuer_conn.request_presentation(
+        async with verifier.listening(), holder.listening():
+            verifier_pres = await verifier_conn.request_presentation(
                 comment="After revoking, no revocation interval (should verify true)",
                 requested_attributes=[
                     {
@@ -165,22 +168,22 @@ async def main(
                     }
                 ],
             )
-            holder_pres = await holder_conn.receive_pres_ex()
+            holder_pres = await vholder_conn.receive_pres_ex()
             relevant_creds = await holder_pres.fetch_relevant_credentials()
             pres_spec = await holder_pres.auto_prepare_presentation(relevant_creds)
             await holder_pres.send_presentation(pres_spec)
 
-            await issuer_pres.presentation_received()
-            await issuer_pres.verify_presentation()
-            await issuer_pres.verified()
+            await verifier_pres.presentation_received()
+            await verifier_pres.verify_presentation()
+            await verifier_pres.verified()
             await holder_pres.presentation_acked()
 
     with section(
         "Attempt another proof with non_revoked interval and local non_revoked override"
     ):
         non_revoked_time = int(time.time())
-        async with issuer.listening(), holder.listening():
-            issuer_pres = await issuer_conn.request_presentation(
+        async with verifier.listening(), holder.listening():
+            verifier_pres = await verifier_conn.request_presentation(
                 comment=(
                     "After revocation, non_revoked interval and local "
                     "non_revoked override (should verify true)"
@@ -197,20 +200,20 @@ async def main(
                 ],
                 non_revoked={"from": non_revoked_time, "to": non_revoked_time},
             )
-            holder_pres = await holder_conn.receive_pres_ex()
+            holder_pres = await vholder_conn.receive_pres_ex()
             relevant_creds = await holder_pres.fetch_relevant_credentials()
             pres_spec = await holder_pres.auto_prepare_presentation(relevant_creds)
             await holder_pres.send_presentation(pres_spec)
 
-            await issuer_pres.presentation_received()
-            await issuer_pres.verify_presentation()
-            await issuer_pres.verified()
+            await verifier_pres.presentation_received()
+            await verifier_pres.verify_presentation()
+            await verifier_pres.verified()
             await holder_pres.presentation_acked()
 
     with section("Attempt another proof with only local non_revoked interval"):
         non_revoked_time = int(time.time())
-        async with issuer.listening(), holder.listening():
-            issuer_pres = await issuer_conn.request_presentation(
+        async with verifier.listening(), holder.listening():
+            verifier_pres = await verifier_conn.request_presentation(
                 comment=(
                     "After revocation, local non_revoked interval only "
                     "(should verify false)"
@@ -226,18 +229,18 @@ async def main(
                     }
                 ],
             )
-            holder_pres = await holder_conn.receive_pres_ex()
+            holder_pres = await vholder_conn.receive_pres_ex()
             relevant_creds = await holder_pres.fetch_relevant_credentials()
             pres_spec = await holder_pres.auto_prepare_presentation(relevant_creds)
             await holder_pres.send_presentation(pres_spec)
 
-            await issuer_pres.presentation_received()
-            await issuer_pres.verify_presentation()
-            await issuer_pres.verified()
+            await verifier_pres.presentation_received()
+            await verifier_pres.verify_presentation()
+            await verifier_pres.verified()
             await holder_pres.presentation_acked()
 
     with section("Query presentations"):
-        presentations = await issuer_conn.get_pres_ex_records()
+        presentations = await verifier_conn.get_pres_ex_records()
 
     with section("Presentation Summary"):
         for pres in presentations:
