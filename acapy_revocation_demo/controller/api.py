@@ -71,7 +71,7 @@ class Api(Generic[ApiParams, ApiResult]):
             json.dumps(body, sort_keys=True, indent=2),
         )
         result: Response = await self.api(*args, **kwargs)
-        if result.status_code == 200:
+        if result.status_code >= 200 and result.status_code < 400:
             serialized = _serialize(result.parsed)
             response_out = json.dumps(serialized, indent=2, sort_keys=True)
             if response_out.count("\n") > 30:
