@@ -138,9 +138,11 @@ class Controller:
             await self._ws.close()
         self._ws = None
 
-        self._ws_task.cancel()
-        with suppress(asyncio.CancelledError):
-            await self._ws_task
+        if self._ws_task:
+            self._ws_task.cancel()
+            with suppress(asyncio.CancelledError):
+                await self._ws_task
+
         self._ws_task = None
 
     async def ws(self):
