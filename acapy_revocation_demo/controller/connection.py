@@ -1,5 +1,6 @@
 """Interface for interacting with an agent."""
 import json
+from json.decoder import JSONDecodeError
 import logging
 from typing import Any, Dict, List, Optional, TYPE_CHECKING, TypeVar, Union
 
@@ -21,6 +22,10 @@ from acapy_client.api.present_proof_v1_0 import (
 from acapy_client.api.trustping import (
     post_connections_conn_id_send_ping as _send_trust_ping,
 )
+from acapy_client.api.mediation import (
+    post_mediation_request_conn_id as _send_mediation_request,
+)
+from acapy_client.client import Client
 from acapy_client.models.conn_record import ConnRecord
 from acapy_client.models.connection_metadata_set_request import (
     ConnectionMetadataSetRequest,
@@ -38,6 +43,8 @@ from acapy_client.models.indy_proof_request_requested_predicates import (
     IndyProofRequestRequestedPredicates,
 )
 from acapy_client.models.invitation_result import InvitationResult
+from acapy_client.models.keylist_update import KeylistUpdate
+from acapy_client.models.mediation_create_request import MediationCreateRequest
 from acapy_client.models.ping_request import PingRequest
 from acapy_client.models.v10_credential_exchange import V10CredentialExchange
 from acapy_client.models.v10_credential_free_offer_request import (
@@ -50,11 +57,13 @@ from acapy_client.models.v10_presentation_exchange import V10PresentationExchang
 from acapy_client.models.v10_presentation_send_request_request import (
     V10PresentationSendRequestRequest,
 )
-from acapy_client.types import UNSET
+from acapy_client.types import UNSET, Response
+from httpx import AsyncClient
 
 from .api import Api
 from .credential_exchange import CredentialExchange
 from .presentation_exchange import PresentationExchange
+from .mediation import Mediation
 from .record import Record
 from .utils import unwrap, unwrap_or
 
@@ -324,3 +333,65 @@ class Connection(Record[Union[InvitationResult, ConnRecord]]):
             )
             for record in unwrap_or(result.results) or []
         ]
+
+    async def request_mediation(self) -> Mediation:
+        send_mediation_request = Api(
+            self.name,
+            _send_mediation_request._get_kwargs,
+            _send_mediation_request.asyncio_detailed,
+        )
+        result = await send_mediation_request(
+            self.connection_id, client=self.client, json_body=MediationCreateRequest()
+        )
+        return Mediation(
+            self.controller, self.connection_id, unwrap(result.mediation_id), result
+        )
+
+    async def update_keylist(
+        self, mediation: Optional[Mediation] = None
+    ) -> KeylistUpdate:
+        def _get_kwargs(
+            connection_id: str, mediation_id: Optional[str] = None, *, client: Client
+        ):
+            url = "{}/mediation/update_keylist/{conn_id}".format(
+                client.base_url, conn_id=connection_id
+            )
+
+            headers: Dict[str, str] = client.get_headers()
+            cookies: Dict[str, Any] = client.get_cookies()
+
+            json_json_body = {"mediation_id": mediation_id} if mediation_id else {}
+            return {
+                "method": "post",
+                "url": url,
+                "headers": headers,
+                "cookies": cookies,
+                "timeout": client.get_timeout(),
+                "json": json_json_body,
+            }
+
+        async def _manual_override(
+            connection_id: str, mediation_id: Optional[str] = None, *, client: Client
+        ):
+            async with AsyncClient(base_url=self.client.base_url) as session:
+                result = await session.post(
+                    f"/mediation/update-keylist/{connection_id}",
+                    json={"mediation_id": mediation_id} if mediation_id else {},
+                )
+                try:
+                    info = result.json()
+                except JSONDecodeError:
+                    info = None
+                return Response(
+                    status_code=result.status_code,
+                    content=result.content,
+                    headers=result.headers,
+                    parsed=KeylistUpdate.from_dict(info) if info else None,
+                )
+
+        update_keylist = Api(self.name, _get_kwargs, _manual_override)
+        return await update_keylist(
+            self.connection_id,
+            mediation.mediation_id if mediation else None,
+            client=self.client,
+        )

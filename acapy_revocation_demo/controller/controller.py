@@ -3,12 +3,7 @@ import asyncio
 from contextlib import asynccontextmanager, suppress
 import json
 import logging
-from typing import (
-    List,
-    NamedTuple,
-    Optional,
-    Tuple,
-)
+from typing import List, NamedTuple, Optional, Tuple
 
 from acapy_client.api.connection import (
     create_invitation as _create_invitation,
@@ -21,14 +16,17 @@ from acapy_client.api.issue_credential_v1_0 import (
     get_issue_credential_records as _get_cred_ex_records,
     get_issue_credential_records_cred_ex_id as _get_cred_ex_record,
 )
+from acapy_client.api.ledger import accept_taa as _accept_taa, fetch_taa as _fetch_taa
+from acapy_client.api.mediation import (
+    delete_mediation_default_mediator as _delete_default_mediator,
+    get_mediation_default_mediator as _get_default_mediator,
+    get_mediation_keylists as _get_keylists,
+)
 from acapy_client.api.present_proof_v1_0 import (
     get_present_proof_records as _get_pres_ex_records,
     get_present_proof_records_pres_ex_id as _get_pres_ex_record,
 )
-from acapy_client.api.ledger import accept_taa as _accept_taa, fetch_taa as _fetch_taa
-from acapy_client.api.revocation import (
-    publish_revocations as _publish_revocations,
-)
+from acapy_client.api.revocation import publish_revocations as _publish_revocations
 from acapy_client.api.schema import publish_schema as _publish_schema
 from acapy_client.api.server import get_status_config
 from acapy_client.api.wallet import (
@@ -52,6 +50,7 @@ from acapy_client.models.credential_definition_send_result import (
 from acapy_client.models.did import DID
 from acapy_client.models.did_create import DIDCreate
 from acapy_client.models.did_result import DIDResult
+from acapy_client.models.keylist import Keylist
 from acapy_client.models.publish_revocations import PublishRevocations
 from acapy_client.models.receive_invitation_request import ReceiveInvitationRequest
 from acapy_client.models.schema_send_request import SchemaSendRequest
@@ -71,11 +70,12 @@ from aiohttp.http_websocket import WSMsgType
 from httpx import AsyncClient
 
 from .api import Api
-from .onboarding import get_onboarder
-from .queue import Queue
 from .connection import Connection
 from .credential_exchange import CredentialExchange
+from .mediation import Mediation
+from .onboarding import get_onboarder
 from .presentation_exchange import PresentationExchange
+from .queue import Queue
 from .utils import unwrap, unwrap_or
 
 
@@ -109,6 +109,7 @@ class Controller:
         timeout: float = 5.0,
         long_timeout: float = 15.0,
     ):
+
         self.name = name
         self.client = Client(
             base_url=base_url, headers=headers or {}, timeout=timeout, verify_ssl=True
@@ -132,9 +133,11 @@ class Controller:
             await self._ws.close()
         self._ws = None
 
-        self._ws_task.cancel()
-        with suppress(asyncio.CancelledError):
-            await self._ws_task
+        if self._ws_task:
+            self._ws_task.cancel()
+            with suppress(asyncio.CancelledError):
+                await self._ws_task
+
         self._ws_task = None
 
     async def ws(self):
@@ -181,6 +184,7 @@ class Controller:
         self,
         invite: ConnectionInvitation,
         *,
+        mediation: Optional[Mediation] = None,
         auto_accept: bool = False,
         alias: Optional[str] = None,
     ) -> Connection:
@@ -194,12 +198,14 @@ class Controller:
             json_body=ReceiveInvitationRequest.from_dict(invite.to_dict()),
             auto_accept=auto_accept,
             alias=alias,
+            mediation_id=mediation.mediation_id if mediation else UNSET,
         )
         return Connection(self, unwrap(record.connection_id), record)
 
     async def create_invitation(
         self,
         *,
+        mediation: Optional[Mediation] = None,
         auto_accept: bool = False,
         alias: Optional[str] = None,
         metadata: Optional[dict] = None,
@@ -212,7 +218,8 @@ class Controller:
         invitation_result = await create_invitation(
             client=self.client,
             json_body=CreateInvitationRequest(
-                metadata=CreateInvitationRequestMetadata.from_dict(metadata or {})
+                metadata=CreateInvitationRequestMetadata.from_dict(metadata or {}),
+                mediation_id=mediation.mediation_id if mediation else UNSET,
             ),
             auto_accept=auto_accept,
             alias=alias,
@@ -448,3 +455,28 @@ class Controller:
                 )
             await onboarder.onboard(public_did, verkey)
             await self.set_public_did(public_did)
+
+    async def get_default_mediator(self) -> Mediation:
+        get_default_mediator = Api(
+            self.name,
+            _get_default_mediator._get_kwargs,
+            _get_default_mediator.asyncio_detailed,
+        )
+        result = await get_default_mediator(client=self.client)
+        return Mediation(
+            self, result.connection_id, unwrap(result.mediation_id), result
+        )
+
+    async def delete_default_mediator(self):
+        delete_default_mediator = Api(
+            self.name,
+            _delete_default_mediator._get_kwargs,
+            _delete_default_mediator.asyncio_detailed,
+        )
+        await delete_default_mediator(client=self.client)
+
+    async def get_mediation_keylists(self) -> Keylist:
+        get_keylists = Api(
+            self.name, _get_keylists._get_kwargs, _get_keylists.asyncio_detailed
+        )
+        return await get_keylists(client=self.client)
