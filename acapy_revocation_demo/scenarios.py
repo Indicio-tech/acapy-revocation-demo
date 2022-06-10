@@ -12,6 +12,9 @@ from . import Controller, Connection, logging_to_stdout, flows
 ISSUER = getenv("ISSUER", "http://host.docker.internal:8021")
 VERIFIER = getenv("VERIFIER", "http://host.docker.internal:8031")
 HOLDER = getenv("HOLDER", "http://host.docker.internal:8041")
+ALICE = getenv("ALICE", "http://localhost:3001")
+MEDIATOR = getenv("MEDIATOR", "http://localhost:3003")
+BOB = getenv("BOB", "http://localhost:3005")
 
 
 def random_string(size):
@@ -144,12 +147,38 @@ async def revocation_demo(
     await main(issuer, verifier, holder)
 
 
+async def mediated_connection(alice: Controller, mediator: Controller, bob: Controller):
+    """Completed a mediated connection."""
+    async with alice.listening(), bob.listening():
+        alice_mediator, mediator_alice = await connected(alice, mediator)
+        mediation = await alice_mediator.request_mediation()
+        await mediation.granted()
+        bob_alice, invite = await bob.create_invitation(auto_accept=True)
+        alice_bob = await alice.receive_invitation(invite, mediation=mediation)
+        await alice_bob.update_keylist()
+        await alice_bob.accept_invitation()
+        await alice_bob.response_received()
+        await alice_bob.send_trust_ping()
+        await alice_bob.active()
+
+        # Other way around now
+        alice_bob, invite = await alice.create_invitation(mediation=mediation)
+        bob_alice = await bob.receive_invitation(invite, auto_accept=True)
+        await alice_bob.request_received()
+        await alice_bob.update_keylist()
+        await alice_bob.accept_request()
+        await bob_alice.response_received()
+        await bob_alice.send_trust_ping()
+        await alice_bob.active()
+
+
 async def main():
     logging_to_stdout()
+    alice = Controller("alice", ALICE)
+    mediator = Controller("mediator", MEDIATOR)
+    bob = Controller("bob", BOB)
 
-    issuer_holder = await connected_issuer_holder()
-    verifier_holder = await connected_verifier_holder()
-    await present_revoked_credential(issuer_holder, verifier_holder)
+    await mediated_connection(alice, mediator, bob)
 
 
 if __name__ == "__main__":
