@@ -36,6 +36,11 @@ async def connected(lhs: Controller, rhs: Controller):
     return await flows.connect((lhs, rhs))
 
 
+async def exchanged_dids(lhs: Controller, rhs: Controller):
+    """Connect two agents through OOB and did exchange."""
+    return await flows.didexchange((lhs, rhs))
+
+
 async def connected_issuer_holder(
     issuer_url: Optional[str] = None, holder_url: Optional[str] = None
 ):

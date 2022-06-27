@@ -9,6 +9,10 @@ from acapy_client.api.connection import (
     post_connections_conn_id_accept_request as _accept_request,
     set_metadata as _set_metadata,
 )
+from acapy_client.api.did_exchange import (
+    post_didexchange_conn_id_accept_invitation as _accept_oob_invitation,
+    post_didexchange_conn_id_accept_request as _accept_didexchange_request,
+)
 from acapy_client.api.issue_credential_v1_0 import (
     issue_credential_automated as _issue_credential,
     get_issue_credential_records as _get_cred_ex_records,
@@ -22,6 +26,9 @@ from acapy_client.api.trustping import (
     post_connections_conn_id_send_ping as _send_trust_ping,
 )
 from acapy_client.models.conn_record import ConnRecord
+from acapy_client.models.conn_record_connection_protocol import (
+    ConnRecordConnectionProtocol,
+)
 from acapy_client.models.connection_metadata_set_request import (
     ConnectionMetadataSetRequest,
 )
@@ -113,7 +120,28 @@ class Connection(Record[Union[InvitationResult, ConnRecord]]):
             _accept_invitation._get_kwargs,
             _accept_invitation.asyncio_detailed,
         )
-        result = await accept_invitation(client=self.client, conn_id=self.connection_id)
+        accept_oob_invitation = Api(
+            self.name,
+            _accept_oob_invitation._get_kwargs,
+            _accept_oob_invitation.asyncio_detailed,
+        )
+
+        if (
+            self.record.connection_protocol
+            is ConnRecordConnectionProtocol.CONNECTIONS1_0
+        ):
+            handler = accept_invitation
+        elif (
+            self.record.connection_protocol
+            is ConnRecordConnectionProtocol.DIDEXCHANGE1_0
+        ):
+            handler = accept_oob_invitation
+        else:
+            raise ValueError(
+                f"Unexected connection protocol: {self.record.connection_protocol}"
+            )
+
+        result = await handler(client=self.client, conn_id=self.connection_id)
         self.record = result
         return result
 
@@ -121,7 +149,28 @@ class Connection(Record[Union[InvitationResult, ConnRecord]]):
         accept_request = Api(
             self.name, _accept_request._get_kwargs, _accept_request.asyncio_detailed
         )
-        result = await accept_request(client=self.client, conn_id=self.connection_id)
+        accept_didexchange_request = Api(
+            self.name,
+            _accept_didexchange_request._get_kwargs,
+            _accept_didexchange_request.asyncio_detailed,
+        )
+
+        if (
+            self.record.connection_protocol
+            is ConnRecordConnectionProtocol.CONNECTIONS1_0
+        ):
+            handler = accept_request
+        elif (
+            self.record.connection_protocol
+            is ConnRecordConnectionProtocol.DIDEXCHANGE1_0
+        ):
+            handler = accept_didexchange_request
+        else:
+            raise ValueError(
+                f"Unexected connection protocol: {self.record.connection_protocol}"
+            )
+
+        result = await handler(client=self.client, conn_id=self.connection_id)
         self.record = result
         return result
 
