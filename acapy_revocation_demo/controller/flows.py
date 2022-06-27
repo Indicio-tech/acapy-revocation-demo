@@ -36,6 +36,32 @@ async def connect(pair: Pair):
         return lhs_conn, rhs_conn
 
 
+async def didexchange(pair: Pair):
+    lhs, rhs = pair
+    async with lhs.listening(), rhs.listening():
+        invite = await lhs.create_oob_invitation()
+        lhs_conn = await invite.connection_from_event()
+        lhs.clear_events()
+
+        rhs_conn = await rhs.receive_oob_invitation(
+            invite.invitation, auto_accept=False
+        )
+
+        await rhs_conn.accept_invitation()
+        rhs.clear_events()
+
+        await lhs_conn.request_received()
+        await lhs_conn.accept_request()
+
+        await rhs_conn.response_received()
+        await rhs_conn.send_trust_ping()
+
+        await lhs_conn.active()
+        await rhs_conn.active()
+
+        return lhs_conn, rhs_conn
+
+
 async def issue_credential(pair: ConnectedPair, *, cred_def_id: str, **attributes):
     issuer, holder = pair
     async with issuer.listening(), holder.listening():

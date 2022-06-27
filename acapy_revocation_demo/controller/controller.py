@@ -3,12 +3,7 @@ import asyncio
 from contextlib import asynccontextmanager, suppress
 import json
 import logging
-from typing import (
-    List,
-    NamedTuple,
-    Optional,
-    Tuple,
-)
+from typing import List, NamedTuple, Optional, Tuple
 
 from acapy_client.api.connection import (
     create_invitation as _create_invitation,
@@ -21,14 +16,16 @@ from acapy_client.api.issue_credential_v1_0 import (
     get_issue_credential_records as _get_cred_ex_records,
     get_issue_credential_records_cred_ex_id as _get_cred_ex_record,
 )
+from acapy_client.api.ledger import accept_taa as _accept_taa, fetch_taa as _fetch_taa
+from acapy_client.api.out_of_band import (
+    post_out_of_band_create_invitation as _create_oob_invitation,
+    post_out_of_band_receive_invitation as _receive_oob_invitation,
+)
 from acapy_client.api.present_proof_v1_0 import (
     get_present_proof_records as _get_pres_ex_records,
     get_present_proof_records_pres_ex_id as _get_pres_ex_record,
 )
-from acapy_client.api.ledger import accept_taa as _accept_taa, fetch_taa as _fetch_taa
-from acapy_client.api.revocation import (
-    publish_revocations as _publish_revocations,
-)
+from acapy_client.api.revocation import publish_revocations as _publish_revocations
 from acapy_client.api.schema import publish_schema as _publish_schema
 from acapy_client.api.server import get_status_config
 from acapy_client.api.wallet import (
@@ -52,6 +49,11 @@ from acapy_client.models.credential_definition_send_result import (
 from acapy_client.models.did import DID
 from acapy_client.models.did_create import DIDCreate
 from acapy_client.models.did_result import DIDResult
+from acapy_client.models.invitation_create_request import InvitationCreateRequest
+from acapy_client.models.invitation_create_request_metadata import (
+    InvitationCreateRequestMetadata,
+)
+from acapy_client.models.invitation_message import InvitationMessage
 from acapy_client.models.publish_revocations import PublishRevocations
 from acapy_client.models.receive_invitation_request import ReceiveInvitationRequest
 from acapy_client.models.schema_send_request import SchemaSendRequest
@@ -71,11 +73,12 @@ from aiohttp.http_websocket import WSMsgType
 from httpx import AsyncClient
 
 from .api import Api
-from .onboarding import get_onboarder
-from .queue import Queue
 from .connection import Connection
 from .credential_exchange import CredentialExchange
+from .invitation import Invitation
+from .onboarding import get_onboarder
 from .presentation_exchange import PresentationExchange
+from .queue import Queue
 from .utils import unwrap, unwrap_or
 
 
@@ -222,6 +225,62 @@ class Controller:
                 self, unwrap(invitation_result.connection_id), invitation_result
             ),
             unwrap(invitation_result.invitation),
+        )
+
+    async def receive_oob_invitation(
+        self,
+        invite: InvitationMessage,
+        *,
+        auto_accept: Optional[bool] = None,
+        alias: Optional[str] = None,
+    ) -> Connection:
+        receive_invitation = Api(
+            self.name,
+            _receive_oob_invitation._get_kwargs,
+            _receive_oob_invitation.asyncio_detailed,
+        )
+        record = await receive_invitation(
+            client=self.client,
+            json_body=InvitationMessage.from_dict(invite.to_dict()),
+            auto_accept=auto_accept,
+            alias=alias,
+        )
+        return Connection(self, unwrap(record.connection_id), record)
+
+    async def create_oob_invitation(
+        self,
+        *,
+        auto_accept: Optional[bool] = None,
+        alias: Optional[str] = None,
+        metadata: Optional[dict] = None,
+        use_public_did: Optional[bool] = None,
+        my_label: Optional[str] = None,
+        multi_use: Optional[bool] = None,
+    ) -> Invitation:
+        create_invitation = Api(
+            self.name,
+            _create_oob_invitation._get_kwargs,
+            _create_oob_invitation.asyncio_detailed,
+        )
+        invitation_result = await create_invitation(
+            client=self.client,
+            json_body=InvitationCreateRequest(
+                alias=alias if alias is not None else UNSET,
+                metadata=InvitationCreateRequestMetadata.from_dict(metadata or {}),
+                handshake_protocols=[
+                    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/didexchange/1.0",
+                    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0",
+                ],
+                use_public_did=use_public_did if use_public_did is not None else UNSET,
+                my_label=my_label if my_label is not None else UNSET,
+            ),
+            auto_accept=auto_accept if auto_accept is not None else UNSET,
+            multi_use=multi_use if multi_use is not None else UNSET,
+        )
+        return Invitation(
+            self,
+            unwrap(invitation_result.invi_msg_id),
+            invitation_result,
         )
 
     async def publish_schema(
