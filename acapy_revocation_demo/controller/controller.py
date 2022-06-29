@@ -3,7 +3,7 @@ import asyncio
 from contextlib import asynccontextmanager, suppress
 import json
 import logging
-from typing import List, NamedTuple, Optional, Tuple
+from typing import List, NamedTuple, Optional, Tuple, Union
 
 from acapy_client.api.connection import (
     create_invitation as _create_invitation,
@@ -54,6 +54,7 @@ from acapy_client.models.invitation_create_request_metadata import (
     InvitationCreateRequestMetadata,
 )
 from acapy_client.models.invitation_message import InvitationMessage
+from acapy_client.models.invitation_result import InvitationResult
 from acapy_client.models.publish_revocations import PublishRevocations
 from acapy_client.models.receive_invitation_request import ReceiveInvitationRequest
 from acapy_client.models.schema_send_request import SchemaSendRequest
@@ -182,7 +183,7 @@ class Controller:
 
     async def receive_invitation(
         self,
-        invite: ConnectionInvitation,
+        invite: Union[InvitationResult, ConnectionInvitation],
         *,
         auto_accept: bool = False,
         alias: Optional[str] = None,
@@ -192,9 +193,14 @@ class Controller:
             _receive_invitation._get_kwargs,
             _receive_invitation.asyncio_detailed,
         )
+        connection_invitation = (
+            unwrap(invite.invitation).to_dict()
+            if isinstance(invite, InvitationResult)
+            else invite.to_dict()
+        )
         record = await receive_invitation(
             client=self.client,
-            json_body=ReceiveInvitationRequest.from_dict(invite.to_dict()),
+            json_body=ReceiveInvitationRequest.from_dict(connection_invitation),
             auto_accept=auto_accept,
             alias=alias,
         )
@@ -206,7 +212,7 @@ class Controller:
         auto_accept: bool = False,
         alias: Optional[str] = None,
         metadata: Optional[dict] = None,
-    ) -> Tuple[Connection, ConnectionInvitation]:
+    ) -> Tuple[Connection, InvitationResult]:
         create_invitation = Api(
             self.name,
             _create_invitation._get_kwargs,
@@ -224,7 +230,7 @@ class Controller:
             Connection(
                 self, unwrap(invitation_result.connection_id), invitation_result
             ),
-            unwrap(invitation_result.invitation),
+            invitation_result,
         )
 
     async def receive_oob_invitation(
