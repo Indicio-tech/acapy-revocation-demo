@@ -25,6 +25,7 @@ from acapy_client.api.present_proof_v1_0 import (
 from acapy_client.api.trustping import (
     post_connections_conn_id_send_ping as _send_trust_ping,
 )
+from acapy_client.api.basicmessage import send_basicmessage as _send_basicmessage
 from acapy_client.models.conn_record import ConnRecord
 from acapy_client.models.conn_record_connection_protocol import (
     ConnRecordConnectionProtocol,
@@ -46,6 +47,7 @@ from acapy_client.models.indy_proof_request_requested_predicates import (
 )
 from acapy_client.models.invitation_result import InvitationResult
 from acapy_client.models.ping_request import PingRequest
+from acapy_client.models.send_message import SendMessage
 from acapy_client.models.v10_credential_exchange import V10CredentialExchange
 from acapy_client.models.v10_credential_free_offer_request import (
     V10CredentialFreeOfferRequest,
@@ -373,3 +375,15 @@ class Connection(Record[Union[InvitationResult, ConnRecord]]):
             )
             for record in unwrap_or(result.results) or []
         ]
+
+    async def basicmessage(self, content: str):
+        send_basicmessage = Api(
+            self.name,
+            _send_basicmessage._get_kwargs,
+            _send_basicmessage.asyncio_detailed,
+        )
+        await send_basicmessage(
+            self.connection_id,
+            client=self.client,
+            json_body=SendMessage(content=content),
+        )
