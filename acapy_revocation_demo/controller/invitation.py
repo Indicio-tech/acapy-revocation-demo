@@ -3,8 +3,12 @@ import logging
 from typing import TYPE_CHECKING
 from acapy_client.models.conn_record import ConnRecord
 from acapy_client.models.invitation_message import InvitationMessage
+from acapy_client.models.connection_invitation import (
+    ConnectionInvitation as AcapyConnectionInvitation,
+)
 
 from acapy_client.models.invitation_record import InvitationRecord
+from acapy_client.models.invitation_result import InvitationResult
 
 from acapy_revocation_demo.controller.utils import unwrap
 
@@ -18,7 +22,51 @@ if TYPE_CHECKING:
 LOGGER = logging.getLogger(__name__)
 
 
-class Invitation(Record[InvitationRecord]):
+class ConnectionInvitation(Record[InvitationResult]):
+    topic = "connections"
+
+    def __init__(
+        self,
+        controller: "Controller",
+        connection_id: str,
+        record: InvitationResult,
+    ):
+        super().__init__(controller, record)
+        self.connection_id = connection_id
+
+    @property
+    def invitation(self) -> AcapyConnectionInvitation:
+        return unwrap(self.record.invitation)
+
+    @property
+    def invitation_url(self) -> str:
+        return unwrap(self.record.invitation_url)
+
+    async def connection_from_event(self) -> Connection:
+        """Get connection from invitation record through event."""
+        assert self.controller.event_queue
+        LOGGER.info(
+            "%s: %s awaiting associated connection...", self.name, type(self).__name__
+        )
+        event = await self.controller.event_queue.get(
+            lambda event: event.topic == self.topic
+            and event.payload["connection_id"] == self.connection_id,
+            timeout=3,
+        )
+        LOGGER.info("%s: %s connection found", self.name, type(self).__name__)
+        LOGGER.debug(
+            "%s connection record: %s",
+            type(self).__name__,
+            json.dumps(event.payload, sort_keys=True),
+        )
+        return Connection(
+            self.controller,
+            event.payload["connection_id"],
+            ConnRecord.from_dict(event.payload),
+        )
+
+
+class OOBInvitation(Record[InvitationRecord]):
     """Class for OOB Invitation Records."""
 
     topic = "oob_invitation"

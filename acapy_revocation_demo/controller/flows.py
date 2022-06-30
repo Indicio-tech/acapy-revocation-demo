@@ -16,7 +16,8 @@ PresExPair = Tuple[PresentationExchange, PresentationExchange]
 async def connect(pair: Pair):
     lhs, rhs = pair
     async with lhs.listening(), rhs.listening():
-        lhs_conn, invite = await lhs.create_invitation()
+        invite = await lhs.create_invitation()
+        lhs_conn = await invite.connection_from_event()
         lhs.clear_events()
 
         rhs_conn = await rhs.receive_invitation(invite, auto_accept=False)

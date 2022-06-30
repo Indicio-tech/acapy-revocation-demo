@@ -34,7 +34,9 @@ from acapy_client.api.wallet import (
     set_public_did as _set_public_did,
 )
 from acapy_client.client import Client
-from acapy_client.models.connection_invitation import ConnectionInvitation
+from acapy_client.models.connection_invitation import (
+    ConnectionInvitation as AcapyConnectionInvitation,
+)
 from acapy_client.models.connection_list import ConnectionList
 from acapy_client.models.create_invitation_request import CreateInvitationRequest
 from acapy_client.models.create_invitation_request_metadata import (
@@ -76,7 +78,7 @@ from httpx import AsyncClient
 from .api import Api
 from .connection import Connection
 from .credential_exchange import CredentialExchange
-from .invitation import Invitation
+from .invitation import ConnectionInvitation, OOBInvitation
 from .onboarding import get_onboarder
 from .presentation_exchange import PresentationExchange
 from .queue import Queue
@@ -183,7 +185,9 @@ class Controller:
 
     async def receive_invitation(
         self,
-        invite: Union[InvitationResult, ConnectionInvitation],
+        invite: Union[
+            InvitationResult, ConnectionInvitation, AcapyConnectionInvitation, dict
+        ],
         *,
         auto_accept: bool = False,
         alias: Optional[str] = None,
@@ -193,11 +197,15 @@ class Controller:
             _receive_invitation._get_kwargs,
             _receive_invitation.asyncio_detailed,
         )
-        connection_invitation = (
-            unwrap(invite.invitation).to_dict()
-            if isinstance(invite, InvitationResult)
-            else invite.to_dict()
-        )
+        if isinstance(invite, InvitationResult):
+            connection_invitation = unwrap(invite.invitation).to_dict()
+        elif isinstance(invite, ConnectionInvitation):
+            connection_invitation = invite.invitation.to_dict()
+        elif isinstance(invite, AcapyConnectionInvitation):
+            connection_invitation = invite.to_dict()
+        else:
+            connection_invitation = invite
+
         record = await receive_invitation(
             client=self.client,
             json_body=ReceiveInvitationRequest.from_dict(connection_invitation),
@@ -212,7 +220,7 @@ class Controller:
         auto_accept: bool = False,
         alias: Optional[str] = None,
         metadata: Optional[dict] = None,
-    ) -> Tuple[Connection, InvitationResult]:
+    ) -> ConnectionInvitation:
         create_invitation = Api(
             self.name,
             _create_invitation._get_kwargs,
@@ -226,11 +234,8 @@ class Controller:
             auto_accept=auto_accept,
             alias=alias,
         )
-        return (
-            Connection(
-                self, unwrap(invitation_result.connection_id), invitation_result
-            ),
-            invitation_result,
+        return ConnectionInvitation(
+            self, unwrap(invitation_result.connection_id), invitation_result
         )
 
     async def receive_oob_invitation(
@@ -262,7 +267,7 @@ class Controller:
         use_public_did: Optional[bool] = None,
         my_label: Optional[str] = None,
         multi_use: Optional[bool] = None,
-    ) -> Invitation:
+    ) -> OOBInvitation:
         create_invitation = Api(
             self.name,
             _create_oob_invitation._get_kwargs,
@@ -283,7 +288,7 @@ class Controller:
             auto_accept=auto_accept if auto_accept is not None else UNSET,
             multi_use=multi_use if multi_use is not None else UNSET,
         )
-        return Invitation(
+        return OOBInvitation(
             self,
             unwrap(invitation_result.invi_msg_id),
             invitation_result,
