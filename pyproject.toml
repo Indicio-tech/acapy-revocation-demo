@@ -7,7 +7,7 @@ license = "Apache-2.0"
 
 [tool.poetry.dependencies]
 python = "^3.7"
-acapy-client = "0.7.3.post0"
+acapy-client = "0.7.4"
 aiohttp = "^3.8.1"
 blessings = "^1.7"
 

@@ -13,6 +13,7 @@ from acapy_client.api.issue_credential_v1_0 import (
 )
 from acapy_client.api.revocation import revoke_credential as _revoke_credential
 from acapy_client.models.revoke_request import RevokeRequest
+from acapy_client.models.revoke_request_notify_version import RevokeRequestNotifyVersion
 from acapy_client.models.v10_credential_exchange import V10CredentialExchange
 from acapy_client.models.v10_credential_issue_request import V10CredentialIssueRequest
 from acapy_client.models.v10_credential_problem_report_request import (
@@ -156,6 +157,7 @@ class CredentialExchange(Record[V10CredentialExchange]):
                 connection_id=self.connection_id,
                 cred_ex_id=self.credential_exchange_id,
                 publish=publish,
+                notify_version=RevokeRequestNotifyVersion.V1_0,
             ),
         )
 
