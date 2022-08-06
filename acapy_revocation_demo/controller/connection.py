@@ -1,7 +1,7 @@
 """Interface for interacting with an agent."""
 import json
 import logging
-from typing import Any, Dict, List, Optional, TYPE_CHECKING, TypeVar, Union
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 from acapy_client.api.connection import (
     get_metadata as _get_metadata,
@@ -45,7 +45,6 @@ from acapy_client.models.indy_proof_request_requested_attributes import (
 from acapy_client.models.indy_proof_request_requested_predicates import (
     IndyProofRequestRequestedPredicates,
 )
-from acapy_client.models.invitation_result import InvitationResult
 from acapy_client.models.ping_request import PingRequest
 from acapy_client.models.send_message import SendMessage
 from acapy_client.models.v10_credential_exchange import V10CredentialExchange
@@ -74,17 +73,14 @@ if TYPE_CHECKING:
 LOGGER = logging.getLogger(__name__)
 
 
-T = TypeVar("T")
-
-
-class Connection(Record[Union[InvitationResult, ConnRecord]]):
+class Connection(Record[ConnRecord]):
     topic = "connections"
 
     def __init__(
         self,
         controller: "Controller",
         connection_id: str,
-        record: Union[InvitationResult, ConnRecord],
+        record: ConnRecord,
     ):
         super().__init__(controller, record)
         self.connection_id = connection_id
@@ -272,7 +268,7 @@ class Connection(Record[Union[InvitationResult, ConnRecord]]):
         return CredentialExchange(
             self.controller,
             self.connection_id,
-            credential_exchange_id=event.payload.get("credential_exchange_id"),
+            credential_exchange_id=event.payload["credential_exchange_id"],
             record=V10CredentialExchange.from_dict(event.payload),
         )
 
@@ -334,7 +330,7 @@ class Connection(Record[Union[InvitationResult, ConnRecord]]):
         return PresentationExchange(
             self.controller,
             self.connection_id,
-            presentation_exchange_id=event.payload.get("presentation_exchange_id"),
+            presentation_exchange_id=event.payload["presentation_exchange_id"],
             record=V10PresentationExchange.from_dict(event.payload),
         )
 
