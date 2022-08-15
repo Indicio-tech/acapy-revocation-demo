@@ -11,7 +11,7 @@ from typing import Optional
 from blessings import Terminal
 
 from . import Controller, logging_to_stdout
-from .scenarios import connected, random_string
+from .scenarios import exchanged_dids, random_string
 
 
 ISSUER = getenv("ISSUER", "http://localhost:3003")
@@ -46,12 +46,24 @@ async def main(
     verifier = verifier or Controller("verifier", VERIFIER)
     holder = holder or Controller("holder", HOLDER)
 
-    with section("Establish Connection"):
-        issuer_conn, holder_conn = await connected(issuer, holder)
-        verifier_conn, vholder_conn = await connected(verifier, holder)
+    with section("Prepare for writing to the ledger"):
+        await issuer.onboard()
+
+    with section("Establish Connection, use public did, single use, auto-accept."):
+        issuer_conn, holder_conn = await exchanged_dids(
+            lhs=issuer, rhs=holder, use_public_did=True, auto_accept=True
+        )
+
+    # TOFU: break conn, try connection re-use
+    # Clean up connection before next section?
 
     with section("Prepare for writing to the ledger"):
         await issuer.onboard()
+
+    with section("Establish Connection, use public did, multi use."):
+        issuer_conn, holder_conn = await exchanged_dids(
+            lhs=issuer, rhs=holder, use_public_did=True
+        )
 
     with section("Prepare credential ledger artifacts"):
         schema_id = await issuer.publish_schema(

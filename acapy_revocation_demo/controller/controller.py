@@ -244,6 +244,7 @@ class Controller:
         *,
         auto_accept: Optional[bool] = None,
         alias: Optional[str] = None,
+        use_existing_connection: Optional[bool] = None,
     ) -> Connection:
         receive_invitation = Api(
             self.name,
@@ -255,6 +256,7 @@ class Controller:
             json_body=InvitationMessage.from_dict(invite.to_dict()),
             auto_accept=auto_accept,
             alias=alias,
+            use_existing_connection=use_existing_connection,
         )
         return Connection(self, unwrap(record.connection_id), record)
 
