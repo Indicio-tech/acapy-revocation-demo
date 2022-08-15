@@ -183,6 +183,20 @@ class Controller:
         record = await get_connection(client=self.client, conn_id=connection_id)
         return Connection(self, unwrap(record.connection_id), record)
 
+    async def get_connection_from_invitation(
+        self, invitation_msg_id: str
+    ) -> Connection:
+        get_connections = Api(
+            self.name, _get_connections._get_kwargs, _get_connections.asyncio_detailed
+        )
+        result = await get_connections(
+            client=self.client,
+            invitation_msg_id=invitation_msg_id,
+        )
+        connections = unwrap(result.results)
+        assert connections
+        return Connection(self, unwrap(connections[0].connection_id), connections[0])
+
     async def receive_invitation(
         self,
         invite: Union[
