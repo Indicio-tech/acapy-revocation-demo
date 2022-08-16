@@ -26,6 +26,7 @@ services:
         --auto-provision
         --notify-revocation
         --monitor-revocation-notification
+        --public-invites
     depends_on:
       - tails
       - webhook-listener
@@ -57,6 +58,7 @@ services:
         --auto-provision
         --notify-revocation
         --monitor-revocation-notification
+        --public-invites
     depends_on:
       - tails
       - webhook-listener
