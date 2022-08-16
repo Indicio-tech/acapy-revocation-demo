@@ -55,7 +55,9 @@ async def didexchange(
                 auto_accept=auto_accept,
                 multi_use=multi_use,
             )
-        lhs_conn = await invite.connection_from_event()
+        lhs_conn = await lhs.get_connection_from_invitation(
+            invitation_msg_id=invite.invitation_id
+        )
         lhs.clear_events()
 
         rhs_conn = await rhs.receive_oob_invitation(
