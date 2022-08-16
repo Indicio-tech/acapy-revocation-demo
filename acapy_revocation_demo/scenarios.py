@@ -7,6 +7,8 @@ import asyncio
 import time
 from typing import NamedTuple, Optional
 
+from acapy_revocation_demo.controller.invitation import OOBInvitation
+
 from . import Controller, Connection, logging_to_stdout, flows
 
 ISSUER = getenv("ISSUER", "http://host.docker.internal:8021")
@@ -42,9 +44,12 @@ async def exchanged_dids(
     use_public_did: Optional[bool] = False,
     auto_accept: Optional[bool] = False,
     multi_use: Optional[bool] = False,
+    invite: Optional[OOBInvitation] = None,
 ):
     """Connect two agents through OOB and did exchange."""
-    return await flows.didexchange((lhs, rhs), use_public_did, auto_accept, multi_use)
+    return await flows.didexchange(
+        (lhs, rhs), use_public_did, auto_accept, multi_use, invite
+    )
 
 
 async def connected_issuer_holder(
