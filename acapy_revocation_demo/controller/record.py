@@ -3,8 +3,10 @@ from abc import abstractproperty
 import json
 import logging
 from typing import (
+    Any,
     Callable,
     ClassVar,
+    Dict,
     Generic,
     Optional,
     Protocol,
@@ -29,6 +31,9 @@ class RecordProtocol(Protocol):
     def from_dict(cls: Type[T], src_dict: dict) -> T:
         ...
 
+    def to_dict(self) -> Dict[str, Any]:
+        ...
+
 
 RecordType = TypeVar("RecordType", bound=RecordProtocol)
 
@@ -45,6 +50,13 @@ class Record(Generic[RecordType]):
     @property
     def client(self) -> Client:
         return self.controller.client
+
+    def __repr__(self):
+        return (
+            f"<{type(self).__name__} "
+            f"name={self.name}, "
+            f"record={self.record.to_dict()}"
+        )
 
     @abstractproperty
     def name(self) -> str:
