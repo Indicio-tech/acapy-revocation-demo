@@ -46,6 +46,7 @@ async def didexchange(
     auto_accept: Optional[bool] = False,
     multi_use: Optional[bool] = False,
     invite: Optional[OOBInvitation] = None,
+    use_existing_connection: Optional[bool] = False,
 ):
     lhs, rhs = pair
     async with lhs.listening(), rhs.listening():
@@ -61,7 +62,9 @@ async def didexchange(
         lhs.clear_events()
 
         rhs_conn = await rhs.receive_oob_invitation(
-            invite.invitation, auto_accept=auto_accept
+            invite.invitation,
+            auto_accept=auto_accept,
+            use_existing_connection=use_existing_connection,
         )
         if not auto_accept:
             await rhs_conn.accept_invitation()
@@ -73,8 +76,9 @@ async def didexchange(
             await rhs_conn.response_received()
             await rhs_conn.send_trust_ping()
 
-        await lhs_conn.active()
-        await rhs_conn.active()
+        if not use_existing_connection:
+            await lhs_conn.active()
+            await rhs_conn.active()
 
         return lhs_conn, rhs_conn
 

@@ -49,7 +49,56 @@ async def main(
     with section("Prepare for writing to the ledger"):
         await issuer.onboard()
 
-    with section("Try Connection Reuse, use public did, single use, auto accept."):
+    with section(
+        "Section 1: Try Connection Reuse, use public did, single use, auto accept"
+    ):
+
+        issuer_conn, holder_conn = await exchanged_dids(
+            lhs=issuer, rhs=holder, use_public_did=True, auto_accept=True
+        )
+        print(holder_conn.__repr__)
+        assert holder_conn.record.their_public_did
+
+        # try:
+        issuer_conn, holder_conn = await exchanged_dids(
+            lhs=issuer,
+            rhs=holder,
+            use_public_did=True,
+            auto_accept=True,
+            use_existing_connection=True,
+        )
+        assert holder_conn.record.their_public_did
+        # except:
+        # pass
+
+    with section(
+        "Section 2: Try Connection Reuse, use public did, multi use, auto accept"
+    ):
+        try:
+            # Fails due to mutual exclusion of multi_use and use_public_did in ACA-Py
+            invite = await issuer.create_oob_invitation(
+                use_public_did=True, auto_accept=True, multi_use=True
+            )
+        except:
+            invite = None
+            print("Expected failure in creating multi-use invite with public DID.")
+
+        if not invite:
+            print("Invitation creation failed, unable to attempt connection")
+        else:
+            issuer_conn, holder_conn = await exchanged_dids(
+                lhs=issuer,
+                rhs=holder,
+                use_public_did=True,
+                auto_accept=True,
+                invite=invite,
+            )
+            print(holder_conn.__repr__)
+            assert holder_conn.record.their_public_did
+
+    with section(
+        "Section 3: Try using same invite twice, use public did, single use, auto accept."
+    ):
         invite = await issuer.create_oob_invitation(
             use_public_did=True,
             auto_accept=True,
@@ -71,25 +120,6 @@ async def main(
             assert holder_conn.record.their_public_did
         except:
             print("Expected failure of conn reuse.")
-
-    with section("Try Connection Reuse, use public did, multi use, auto accept"):
-        try:
-            invite = await issuer.create_oob_invitation(
-                use_public_did=True, auto_accept=True, multi_use=True
-            )
-        except:
-            invite = None
-            print("Expected failure in creating multi-use invite with public DID.")
-
-        if not invite:
-            print("Invitation creation failed, unable to attempt connection")
-            return
-
-        issuer_conn, holder_conn = await exchanged_dids(
-            lhs=issuer, rhs=holder, use_public_did=True, auto_accept=True, invite=invite
-        )
-        print(holder_conn.__repr__)
-        assert holder_conn.record.their_public_did
 
 
 if __name__ == "__main__":

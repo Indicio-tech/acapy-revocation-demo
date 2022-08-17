@@ -45,10 +45,16 @@ async def exchanged_dids(
     auto_accept: Optional[bool] = False,
     multi_use: Optional[bool] = False,
     invite: Optional[OOBInvitation] = None,
+    use_existing_connection: Optional[bool] = False,
 ):
     """Connect two agents through OOB and did exchange."""
     return await flows.didexchange(
-        (lhs, rhs), use_public_did, auto_accept, multi_use, invite
+        (lhs, rhs),
+        use_public_did,
+        auto_accept,
+        multi_use,
+        invite,
+        use_existing_connection,
     )
 
 
