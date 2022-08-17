@@ -127,6 +127,9 @@ pythonenv*
 # Rope project settings
 .ropeproject
 
+# VSCode
+.vscode
+
 # mkdocs documentation
 /site
 
