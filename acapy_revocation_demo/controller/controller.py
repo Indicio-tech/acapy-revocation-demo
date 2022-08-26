@@ -56,6 +56,7 @@ from acapy_client.models.invitation_create_request_metadata import (
     InvitationCreateRequestMetadata,
 )
 from acapy_client.models.invitation_message import InvitationMessage
+from acapy_client.models.invitation_record import InvitationRecord
 from acapy_client.models.invitation_result import InvitationResult
 from acapy_client.models.publish_revocations import PublishRevocations
 from acapy_client.models.receive_invitation_request import ReceiveInvitationRequest
@@ -272,9 +273,8 @@ class Controller:
             alias=alias,
             use_existing_connection=use_existing_connection,
         )
-        return OOBInvitation(
-            self, unwrap(record.invi_msg_id), unwrap(record.connection_id), record
-        )
+        record = InvitationRecord.from_dict(record.to_dict())
+        return OOBInvitation(self, unwrap(record.invi_msg_id), record)
 
     async def create_oob_invitation(
         self,
@@ -309,7 +309,6 @@ class Controller:
         return OOBInvitation(
             self,
             unwrap(invitation_result.invi_msg_id),
-            unwrap(invitation_result.connection_id),
             invitation_result,
         )
 

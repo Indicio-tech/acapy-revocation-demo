@@ -61,16 +61,17 @@ async def didexchange(
         )
         lhs.clear_events()
 
-        rhs_oob = await rhs.receive_oob_invitation(
+        rhs_invite = await rhs.receive_oob_invitation(
             invite.invitation,
             auto_accept=auto_accept,
             use_existing_connection=use_existing_connection,
         )
+        rhs_oob = await rhs_invite.oob_from_event()
 
         if use_existing_connection and rhs_oob.state == "reuse-accepted":
-            await invite.done()
+            lhs_oob = await invite.oob_from_event()
             await rhs_oob.reuse_accepted()
-            return lhs.get_connection(invite.connection_id), rhs.get_connection(
+            return lhs.get_connection(lhs_oob.connection_id), rhs.get_connection(
                 rhs_oob.connection_id
             )
 
@@ -86,6 +87,8 @@ async def didexchange(
 
             await lhs_conn.active()
             await rhs_conn.active()
+        else:
+            rhs_conn = await rhs.get_connection(rhs_oob.connection_id)
 
         return lhs_conn, rhs_conn
 
