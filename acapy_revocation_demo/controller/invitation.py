@@ -14,6 +14,10 @@ from acapy_revocation_demo.controller.utils import unwrap
 
 from .record import Record
 from .connection import Connection
+from .api import Api
+from acapy_client.api.did_exchange import (
+    post_didexchange_conn_id_accept_invitation as _accept_oob_invitation,
+)
 
 if TYPE_CHECKING:
     from .controller import Controller
@@ -76,10 +80,12 @@ class OOBInvitation(Record[InvitationRecord]):
         self,
         controller: "Controller",
         invitation_id: str,
+        connection_id: str,
         record: InvitationRecord,
     ):
         super().__init__(controller, record)
         self.invitation_id = invitation_id
+        self.connection_id = connection_id
 
     @property
     def name(self) -> str:
@@ -88,6 +94,27 @@ class OOBInvitation(Record[InvitationRecord]):
     @property
     def invitation(self) -> InvitationMessage:
         return unwrap(self.record.invitation)
+
+    async def done(self):
+        await self.wait_for_state("done")
+        self.connection_id = unwrap(self.record.connection_id)
+
+    async def reuse_accepted(self):
+        await self.wait_for_state("reuse-accepted")
+
+    async def accept_invitation(self) -> Connection:
+
+        accept_oob_invitation = Api(
+            self.name,
+            _accept_oob_invitation._get_kwargs,
+            _accept_oob_invitation.asyncio_detailed,
+        )
+
+        result = await accept_oob_invitation(
+            client=self.client, conn_id=self.connection_id
+        )
+        self.record = result
+        return Connection(self.controller, self.connection_id, result)
 
     async def connection_from_event(self) -> Connection:
         """Get connection from invitation record through event."""

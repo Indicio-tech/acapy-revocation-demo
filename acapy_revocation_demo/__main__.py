@@ -56,7 +56,8 @@ async def main(
         issuer_conn, holder_conn = await exchanged_dids(
             lhs=issuer, rhs=holder, use_public_did=True, auto_accept=True
         )
-        print(holder_conn.__repr__)
+        print("Conn Record Representation 1:")
+        print(holder_conn)
         assert holder_conn.record.their_public_did
 
         # try:
@@ -67,9 +68,11 @@ async def main(
             auto_accept=True,
             use_existing_connection=True,
         )
+        print("Conn Record Representation 2:")
+        print(holder_conn)
         assert holder_conn.record.their_public_did
         # except:
-        # pass
+        #     pass
 
     with section(
         "Section 2: Try Connection Reuse, use public did, multi use, auto accept"
@@ -93,7 +96,8 @@ async def main(
                 auto_accept=True,
                 invite=invite,
             )
-            print(holder_conn.__repr__)
+            print("Conn Record Representation 3:")
+            print(holder_conn)
             assert holder_conn.record.their_public_did
 
     with section(
@@ -106,7 +110,8 @@ async def main(
         issuer_conn, holder_conn = await exchanged_dids(
             lhs=issuer, rhs=holder, use_public_did=True, auto_accept=True, invite=invite
         )
-        print(holder_conn.__repr__)
+        print("Conn Record Representation 4:")
+        print(holder_conn)
         assert holder_conn.record.their_public_did
 
         try:

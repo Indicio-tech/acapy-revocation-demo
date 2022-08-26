@@ -16,6 +16,7 @@ from typing import (
 )
 
 from acapy_client.client import Client
+from .utils import unwrap
 
 if TYPE_CHECKING:
     from .controller import Controller, Event
@@ -50,6 +51,10 @@ class Record(Generic[RecordType]):
     @property
     def client(self) -> Client:
         return self.controller.client
+
+    @property
+    def state(self) -> str:
+        return unwrap(self.record.state)
 
     def __repr__(self):
         return (

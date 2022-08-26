@@ -259,7 +259,7 @@ class Controller:
         auto_accept: Optional[bool] = None,
         alias: Optional[str] = None,
         use_existing_connection: Optional[bool] = None,
-    ) -> Connection:
+    ) -> OOBInvitation:
         receive_invitation = Api(
             self.name,
             _receive_oob_invitation._get_kwargs,
@@ -272,7 +272,9 @@ class Controller:
             alias=alias,
             use_existing_connection=use_existing_connection,
         )
-        return Connection(self, unwrap(record.connection_id), record)
+        return OOBInvitation(
+            self, unwrap(record.invi_msg_id), unwrap(record.connection_id), record
+        )
 
     async def create_oob_invitation(
         self,
@@ -307,6 +309,7 @@ class Controller:
         return OOBInvitation(
             self,
             unwrap(invitation_result.invi_msg_id),
+            unwrap(invitation_result.connection_id),
             invitation_result,
         )
 

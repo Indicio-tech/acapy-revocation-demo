@@ -1,7 +1,7 @@
 version: '3'
 services:
   holder:
-    image: bcgovimages/aries-cloudagent:py36-1.16-1_0.7.3
+    image: acapy-test
     ports:
       - 3000:3000
       - 3001:3001
@@ -32,7 +32,7 @@ services:
       - webhook-listener
 
   issuer:
-    image: bcgovimages/aries-cloudagent:py36-1.16-1_0.7.3
+    image: acapy-test
     ports:
       - 3002:3000
       - 3003:3001
@@ -64,7 +64,7 @@ services:
       - webhook-listener
 
   verifier:
-    image: bcgovimages/aries-cloudagent:py36-1.16-1_0.7.3
+    image: acapy-test
     ports:
       - 3004:3000
       - 3005:3001
