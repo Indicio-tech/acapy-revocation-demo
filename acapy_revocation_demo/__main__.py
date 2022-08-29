@@ -85,18 +85,21 @@ async def main(
         except:
             invite = None
             print("Expected failure in creating multi-use invite with public DID.")
-
+        print("Conn Record Representation 3:")
+        print(holder_conn)
         if not invite:
             print("Invitation creation failed, unable to attempt connection")
         else:
+            print("Trying Conn Reuse: ")
             issuer_conn, holder_conn = await exchanged_dids(
                 lhs=issuer,
                 rhs=holder,
                 use_public_did=True,
                 auto_accept=True,
                 invite=invite,
+                use_existing_connection=True,
             )
-            print("Conn Record Representation 3:")
+            print("Conn Record Representation 4:")
             print(holder_conn)
             assert holder_conn.record.their_public_did
 
@@ -110,7 +113,7 @@ async def main(
         issuer_conn, holder_conn = await exchanged_dids(
             lhs=issuer, rhs=holder, use_public_did=True, auto_accept=True, invite=invite
         )
-        print("Conn Record Representation 4:")
+        print("Conn Record Representation 5:")
         print(holder_conn)
         assert holder_conn.record.their_public_did
 
