@@ -1,7 +1,7 @@
 version: '3'
 services:
   holder:
-    image: bcgovimages/aries-cloudagent:py36-1.16-1_0.7.3
+    image: bcgovimages/aries-cloudagent:py36-1.16-1_0.7.4
     ports:
       - 3000:3000
       - 3001:3001
@@ -26,12 +26,18 @@ services:
         --auto-provision
         --notify-revocation
         --monitor-revocation-notification
+    healthcheck:
+      test: curl -s -o /dev/null -w '%{http_code}' "http://localhost:3001/status/live" | grep "200" > /dev/null
+      start_period: 10s
+      interval: 5s
+      timeout: 10s
+      retries: 10
     depends_on:
       - tails
       - webhook-listener
 
   issuer:
-    image: bcgovimages/aries-cloudagent:py36-1.16-1_0.7.3
+    image: bcgovimages/aries-cloudagent:py36-1.16-1_0.7.4
     ports:
       - 3002:3000
       - 3003:3001
@@ -57,12 +63,18 @@ services:
         --auto-provision
         --notify-revocation
         --monitor-revocation-notification
+    healthcheck:
+      test: curl -s -o /dev/null -w '%{http_code}' "http://localhost:3001/status/live" | grep "200" > /dev/null
+      start_period: 10s
+      interval: 5s
+      timeout: 10s
+      retries: 10
     depends_on:
       - tails
       - webhook-listener
 
   verifier:
-    image: bcgovimages/aries-cloudagent:py36-1.16-1_0.7.3
+    image: bcgovimages/aries-cloudagent:py36-1.16-1_0.7.4
     ports:
       - 3004:3000
       - 3005:3001
@@ -88,6 +100,12 @@ services:
         --auto-provision
         --notify-revocation
         --monitor-revocation-notification
+    healthcheck:
+      test: curl -s -o /dev/null -w '%{http_code}' "http://localhost:3001/status/live" | grep "200" > /dev/null
+      start_period: 10s
+      interval: 5s
+      timeout: 10s
+      retries: 10
     depends_on:
       - tails
       - webhook-listener
@@ -115,14 +133,30 @@ services:
       context: .
       dockerfile: ./docker/Dockerfile.demo
     environment:
-      - WAIT_BEFORE_HOSTS=3
-      - WAIT_HOSTS=holder:3000,issuer:3000
-      - WAIT_HOSTS_TIMEOUT=30
-      - WAIT_SLEEP_INTERVAL=1
-      - WAIT_HOST_CONNECT_TIMEOUT=10
-      - HOLDER=http://holder:3001
-      - ISSUER=http://issuer:3001
-      - VERIFIER=http://issuer:3001
+      HOLDER: "http://holder:3001"
+      ISSUER: "http://issuer:3001"
+      VERIFIER: "http://issuer:3001"
     depends_on:
-      - holder
-      - issuer
+      holder:
+        condition: service_healthy
+      issuer:
+        condition: service_healthy
+      verifier:
+        condition: service_healthy
+
+  tests:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.demo
+    environment:
+      HOLDER: "http://holder:3001"
+      ISSUER: "http://issuer:3001"
+      VERIFIER: "http://issuer:3001"
+    entrypoint: poetry run pytest
+    depends_on:
+      holder:
+        condition: service_healthy
+      issuer:
+        condition: service_healthy
+      verifier:
+        condition: service_healthy
