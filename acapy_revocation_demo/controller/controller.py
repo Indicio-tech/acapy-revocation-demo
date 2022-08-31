@@ -56,6 +56,7 @@ from acapy_client.models.invitation_create_request_metadata import (
     InvitationCreateRequestMetadata,
 )
 from acapy_client.models.invitation_message import InvitationMessage
+from acapy_client.models.invitation_record import InvitationRecord
 from acapy_client.models.invitation_result import InvitationResult
 from acapy_client.models.publish_revocations import PublishRevocations
 from acapy_client.models.receive_invitation_request import ReceiveInvitationRequest
@@ -183,6 +184,20 @@ class Controller:
         record = await get_connection(client=self.client, conn_id=connection_id)
         return Connection(self, unwrap(record.connection_id), record)
 
+    async def get_connection_from_invitation(
+        self, invitation_msg_id: str
+    ) -> Connection:
+        get_connections = Api(
+            self.name, _get_connections._get_kwargs, _get_connections.asyncio_detailed
+        )
+        result = await get_connections(
+            client=self.client,
+            invitation_msg_id=invitation_msg_id,
+        )
+        connections = unwrap(result.results)
+        assert connections
+        return Connection(self, unwrap(connections[0].connection_id), connections[0])
+
     async def receive_invitation(
         self,
         invite: Union[
@@ -244,7 +259,8 @@ class Controller:
         *,
         auto_accept: Optional[bool] = None,
         alias: Optional[str] = None,
-    ) -> Connection:
+        use_existing_connection: Optional[bool] = None,
+    ) -> OOBInvitation:
         receive_invitation = Api(
             self.name,
             _receive_oob_invitation._get_kwargs,
@@ -255,8 +271,10 @@ class Controller:
             json_body=InvitationMessage.from_dict(invite.to_dict()),
             auto_accept=auto_accept,
             alias=alias,
+            use_existing_connection=use_existing_connection,
         )
-        return Connection(self, unwrap(record.connection_id), record)
+        record = InvitationRecord.from_dict(record.to_dict())
+        return OOBInvitation(self, unwrap(record.invi_msg_id), record)
 
     async def create_oob_invitation(
         self,
