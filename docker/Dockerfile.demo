@@ -3,11 +3,6 @@ FROM python:3.10
 WORKDIR /usr/src/app
 RUN pip install poetry
 
-# Add docker-compose-wait tool -------------------
-ENV WAIT_VERSION 2.7.2
-ADD https://github.com/ufoscout/docker-compose-wait/releases/download/$WAIT_VERSION/wait /wait
-RUN chmod +x /wait
-
 RUN mkdir acapy_revocation_demo && touch acapy_revocation_demo/__init__.py
 COPY ./pyproject.toml .
 COPY ./poetry.lock .
@@ -15,5 +10,6 @@ COPY ./README.md .
 
 RUN poetry install
 COPY ./acapy_revocation_demo acapy_revocation_demo
+COPY ./tests tests
 
-ENTRYPOINT ["/bin/sh", "-c", "/wait && poetry run python -m acapy_revocation_demo \"$@\"", "--"]
+CMD ["poetry", "run", "python", "-m", "acapy_revocation_demo"]
