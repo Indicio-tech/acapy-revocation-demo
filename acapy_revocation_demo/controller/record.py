@@ -3,8 +3,10 @@ from abc import abstractproperty
 import json
 import logging
 from typing import (
+    Any,
     Callable,
     ClassVar,
+    Dict,
     Generic,
     Optional,
     Protocol,
@@ -14,6 +16,7 @@ from typing import (
 )
 
 from acapy_client.client import Client
+from .utils import unwrap
 
 if TYPE_CHECKING:
     from .controller import Controller, Event
@@ -27,6 +30,13 @@ T = TypeVar("T")
 class RecordProtocol(Protocol):
     @classmethod
     def from_dict(cls: Type[T], src_dict: dict) -> T:
+        ...
+
+    def to_dict(self) -> Dict[str, Any]:
+        ...
+
+    @property
+    def state(self) -> str:
         ...
 
 
@@ -45,6 +55,17 @@ class Record(Generic[RecordType]):
     @property
     def client(self) -> Client:
         return self.controller.client
+
+    @property
+    def state(self) -> str:
+        return unwrap(self.record.state)
+
+    def __repr__(self):
+        return (
+            f"<{type(self).__name__} "
+            f"name={self.name}, "
+            f"record={self.record.to_dict()}>"
+        )
 
     @abstractproperty
     def name(self) -> str:

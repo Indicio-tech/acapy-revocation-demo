@@ -1,5 +1,8 @@
 """Definitions of protocol flows."""
+
 from typing import Any, Dict, List, Optional, Tuple
+
+from .invitation import OOBInvitation
 
 from .connection import Connection
 from .controller import Controller
@@ -37,28 +40,55 @@ async def connect(pair: Pair):
         return lhs_conn, rhs_conn
 
 
-async def didexchange(pair: Pair):
+async def didexchange(
+    pair: Pair,
+    use_public_did: Optional[bool] = False,
+    auto_accept: Optional[bool] = False,
+    multi_use: Optional[bool] = False,
+    invite: Optional[OOBInvitation] = None,
+    use_existing_connection: Optional[bool] = False,
+):
     lhs, rhs = pair
     async with lhs.listening(), rhs.listening():
-        invite = await lhs.create_oob_invitation()
-        lhs_conn = await invite.connection_from_event()
+        if not invite:
+            invite = await lhs.create_oob_invitation(
+                use_public_did=use_public_did,
+                auto_accept=auto_accept,
+                multi_use=multi_use,
+            )
+        lhs_conn = await lhs.get_connection_from_invitation(
+            invitation_msg_id=invite.invitation_id
+        )
         lhs.clear_events()
 
-        rhs_conn = await rhs.receive_oob_invitation(
-            invite.invitation, auto_accept=False
+        rhs_invite = await rhs.receive_oob_invitation(
+            invite.invitation,
+            auto_accept=auto_accept,
+            use_existing_connection=use_existing_connection,
         )
+        rhs_oob = await rhs_invite.oob_from_event()
 
-        await rhs_conn.accept_invitation()
-        rhs.clear_events()
+        if use_existing_connection and rhs_oob.state == "reuse-accepted":
+            lhs_oob = await invite.oob_from_event()
+            await rhs_oob.reuse_accepted()
+            return lhs.get_connection(lhs_oob.connection_id), rhs.get_connection(
+                rhs_oob.connection_id
+            )
 
-        await lhs_conn.request_received()
-        await lhs_conn.accept_request()
+        if not auto_accept:
+            rhs_conn = await rhs_oob.accept_invitation()
+            rhs.clear_events()
 
-        await rhs_conn.response_received()
-        await rhs_conn.send_trust_ping()
+            await lhs_conn.request_received()
+            await lhs_conn.accept_request()
 
-        await lhs_conn.active()
-        await rhs_conn.active()
+            await rhs_conn.response_received()
+            await rhs_conn.send_trust_ping()
+
+            await lhs_conn.active()
+            await rhs_conn.active()
+        else:
+            rhs_conn = await rhs.get_connection(rhs_oob.connection_id)
 
         return lhs_conn, rhs_conn
 
