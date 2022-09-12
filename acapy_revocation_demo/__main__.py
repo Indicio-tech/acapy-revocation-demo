@@ -84,7 +84,7 @@ async def main(
             )
         except:
             invite = None
-            print("Expected failure in creating multi-use invite with public DID.")
+            print("Failed to create multi-use invite with public DID.")
         print("Conn Record Representation 3:")
         print(holder_conn)
         if not invite:
@@ -128,6 +128,18 @@ async def main(
             assert holder_conn.record.their_public_did
         except:
             print("Expected failure of conn reuse.")
+
+    with section(
+        "Section 4: Create invitation, remove invitation message id, attempt connection "
+        "and conn reuse."
+    ):
+        invite = await issuer.create_oob_invitation(
+            use_public_did=True,
+        )
+        invite.invitation_id = None
+        issuer_conn, holder_conn = await exchanged_dids(
+            lhs=issuer, rhs=holder, invite=invite, use_public_did=True
+        )
 
 
 if __name__ == "__main__":
