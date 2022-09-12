@@ -26,4 +26,4 @@ def verifier():
 
 @pytest.fixture
 def holder():
-    yield Controller("issuer", getenv_or_raise("ISSUER"))
+    yield Controller("issuer", getenv_or_raise("HOLDER"))
