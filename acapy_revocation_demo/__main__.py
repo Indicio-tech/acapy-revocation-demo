@@ -42,7 +42,7 @@ async def main(
     """Run steps."""
     logging_to_stdout()
 
-    issuer = issuer or Controller("issuer", ISSUER, long_timeout=30)
+    issuer = issuer or Controller("issuer", ISSUER, long_timeout=60)
     verifier = verifier or Controller("verifier", VERIFIER)
     holder = holder or Controller("holder", HOLDER)
 
@@ -56,7 +56,7 @@ async def main(
     with section("Prepare credential ledger artifacts"):
         schema_id = await issuer.publish_schema(
             attributes=["firstname", "age"],
-            schema_name="revocation_testing",
+            schema_name="revocation_testing" + random_string(5),
             schema_version="0.1.0",
         )
         cred_def_id = await issuer.publish_cred_def(
@@ -107,7 +107,7 @@ async def main(
             await issuer.publish_revocations()
             await holder_cred_ex.receive_revocation_notification()
             print("Waiting 10 seconds for revocation to propagate...")
-            time.sleep(10)
+            time.sleep(3)
 
     with section("Request proof from holder again after revoking"):
         before_revoking_time = non_revoked_time
